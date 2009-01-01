@@ -11,7 +11,6 @@ ar rcs libcmtspeech.a cmtspeech_backend_common.o cmtspeech_msgs.o cmtspeech_noki
 }
 
 
-echo "FIXME: when opening streams, specify some reasonable buffer sizes"
 # http://www.freedesktop.org/software/pulseaudio/doxygen/structpa__buffer__attr.html
 
 # build_lib
