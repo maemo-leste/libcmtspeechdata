@@ -208,8 +208,8 @@ void cmtspeech_init(void);
 /**
  * Opens the CMT Speech Data connection to the modem.
  *
- * @return On success, a file descriptor is returned. On error,
- *         a negative error code is returned.
+ * @return Instance pointer is returned. On error,
+ *         NULL is returned.
  */
 cmtspeech_t* cmtspeech_open(void);
 
