@@ -1,0 +1,61 @@
+***************************
+README for libcmtspeechdata
+***************************
+
+Copyright (C) 2009,2010 Nokia Corporation. All rights reserved.
+
+Introduction
+============
+
+This package provides the "libcmtspeechdata" library. Libcmtspeechdata
+provides an application interface for implementing the speech data
+path for cellular voice calls. The library depends on other components
+for setting up and managing the call signaling path.
+
+This README file provides information about available environment
+variables and other similar runtime aspects affecting applications
+that use libcmtpseechdata.
+
+Usage
+=====
+
+This section provides information for running applications
+that use libcmtspeechdata.
+
+Usage: common environment variables
+-----------------------------------
+
+CMTSPEECHDEBUG <string>
+    Enable and/or disable built-in traces in components using
+    the cmtspeech tracing interface (sal_debug.h). The value 
+    is a comma-separated list of tracing options. Currently
+    supported options are "io" (very low volume, version info, 
+    some statistics, warnings and error messages), "trace" (low volume, 
+    key state changes and resource management), "debug" (possibly very
+    high volume, enough message to get full understanding what is
+    happening) and "token" (alternative for 'debug', allows to debug
+    low-level execution with a much lower tracing overhead; a single
+    characther per event is printed out to stderr). Prefixing the token 
+    with "no" will disable the trace type. E.g. 
+    "CMTSPEECHDEBUG=info,trace,nodebug,token". Note that some or all of 
+    the debugging options may be disabled at compile time and thus cannot 
+    be reactived during runtime.
+
+Usage: cmtspeech_dummy backend variables
+----------------------------------------
+
+DUMMYSRC <string>
+    Select the source for generated speech frames. Supported options
+    are "sine" (default, generate a sine tone), or a file name (path
+    must start with either "/" or "."). If a file input is used, 
+    following restrictions apply: Due to real-time requirements, 
+    the whole file must be read to memory before processing starts (e.g. 
+    available memory sets  the practical limit for file length). The file 
+    must be a raw 8/16bit, mono, PCM audio file (with little-endian byte 
+    order).
+
+Further documentation
+=====================
+
+See the documentation distributed with libcmtspeehcdata-doc package:
+ - /usr/share/doc/libcmtspeechdata-doc/html/

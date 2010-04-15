@@ -1,0 +1,361 @@
+/** @mainpage libcmtspeechdata API documentation
+
+Copyright (C) 2009,2010 Nokia Corporation. All rights reserved.
+
+<h2>Table of contents</h2>
+<ul>
+<li> @ref sect_introduction </li>
+<li> @ref sect_api_versioning </li>
+<li> @ref sect_backends </li>
+<li> @ref sect_instance_management </li>
+<li> @ref sect_handling_events </li>
+<li> @ref sect_passing_events </li>
+<li> @ref sect_app_initiated_actions </li>
+</ul>
+
+<hr />
+
+@section sect_introduction Introduction
+
+Libcmtspeechdata provides an application interface
+for implementing the speech data path for cellular voice 
+calls. The library depends on other components for setting
+up and managing the call signaling path.
+  
+CMT is abbreviation of Cellular Modem Terminal, i.e. the 
+cellular modem. APE refers to Application Engine, i.e.
+the processing environment where libcmtspeechdata is run.
+E.g. in Nokia N900, APE the TI OMAP3 processor. SSI refers to
+Synchronous Serial Interface, which is a serial bus found 
+on TI OMAP application engines as well as on Nokia cellular 
+modems. SSI is used as the low-level interface used to 
+communicate between APE and CMT.
+
+This documentation covers the public interface of the library. It is
+meant for developers using libcmtspeechdata.
+
+@section sect_api_versioning API Versioning
+
+The libcmtspeechdata package version consist of components
+X.Y.Z.
+
+X reflects the major version number and is incremented for major 
+architectural/design changes.
+
+Y reflects the library interface version and this is incremented every
+time the public API has been extended since the last release (and is reset 
+to zero if X changes). Z reflects an update to the library implementation
+and/or applications distributed with the package (and is reset to zero
+if Y changes).
+
+Applications may query these versions at build time with (defined
+when including <cmtspeech.h>):
+  - LIBCMTSPEECHDATA_MAJOR
+  - LIBCMTSPEECHDATA_PROTOCOL_VERSION
+  - LIBCMTSPEECHDATA_API_VERSION
+  - LIBCMTSPEECHDATA_MINOR_VERSION
+
+Or at runtime with:
+  - cmtspeech_version_str() (returns a string)
+  - cmtspeech_protocol_version() (returns an integer)
+
+@section sect_backends Library backend implementations
+
+The library may be built using different backends. Typically
+binary runtime packages will be available at least for the main
+hardware implementation, and one using a dummy backend (not
+talking to a real modem). The alternative implementations are
+called library backends. Currently available backends are:
+
+@subsection sect_backend_dummy Dummy 
+A user-space implementation of the CMT Speech Data SSI protocol.
+
+@subsection sect_backend_nokiamodem Nokia Modem 
+Implementation of the CMT Speech Data Backend interface for
+Nokia modems (e.g. Maemo5 / Nokia N900). See notes in 
+the libcmtspeechdata README-devel.txt file in section 
+"Internals: Resource allocation in Nokia Modem backend".
+
+@section sect_instance_management Instance Management
+
+Before using any other library functions, application 
+should call cmtspeech_init(). This function needs to be 
+called once per application process startup.
+
+All other library functions operate on a given instance
+of the library. A new instance is created with cmtspeech_open().
+
+Application should create the library instance at the earliest 
+possible moment, preferably right after the cellular modem is 
+powered up. The reason for this is that opening the device with 
+cmtspeech_open() involves allocation of various resources (memory, 
+opening the kernel  device, etc), and thus it has non-deterministic 
+execution time. Note that it is also possible to open the library
+instance even though the cellular modem is not yet fully 
+functional.
+
+Similarly cmtspeech_close() should only be called when 
+cellular modem is powered off (and no calls are no longer
+made), or in error cases (e.g. application has detected, perhaps
+via some other API, that modem has crashed/rebooted).
+
+@section sect_handling_events Handling library events
+
+Once library instance is open, application should monitor
+for possible events by polling (with e.g. poll() or select()) 
+the file descriptor returned by cmtspeech_descriptor(). If 
+the descriptor becomes readable, application should 
+immediately call cmtspeech_check_pending().
+
+Bitmask of available events is returned by cmtspeech_check_pending()
+via the '<code>int *flags</code>' argument. If the returned bitmask includes 
+CMTSPEECH_EVENT_CONTROL, a control event is available and may
+be fetched with cmtspeech_read_event(). The library maintains
+a fixed size queue for the control events, which can overflow
+if the application does not fetch the events in time.
+
+NOTE: As libcmtspeechdata does not have its own event loop, 
+only those state changes, that are triggered by incoming 
+messages from the modem, are reported as events.
+
+An event contains the following information:
+ - the new protocol state (one of CMTSPEECH_STATE_* defined
+   in cmtspeech.h)
+    - ::cmtspeech_event_t field '<code>state</code>'
+ - the previous protocol state (CMTSPEECH_STATE_*)
+    - ::cmtspeech_event_t field '<code>prev_state</code>'
+ - a copy of the protocol message that caused the state
+   change
+    - ::cmtspeech_event_t fields '<code>msg_type</code>' and '<code>msg</code>'
+
+Most applications should use cmtspeech_event_to_state_transition()
+to convert the event object to an enumerated state transition,
+and handle the result e.g. in a switch loop.
+
+Here is a list of state transitions reported by cmtspeech_event_to_state_transition().
+Some of the events are purely informational, while some require 
+specific actions from the application.
+
+@subsection TR_1 CMTSPEECH_TR_1_CONNECTED
+
+Triggering protocol message is CMTSPEECH_SSI_CONFIG_RESP.
+
+This event indicates that the cellular modem has acknowledged
+activation of the data path for speech frame exchange. The current
+SSI connection status can be queried at any time with
+cmtspeech_is_ssi_connection_enabled().
+
+@subsection TR_2 CMTSPEECH_TR_2_DISCONNECTED
+
+Triggering protocol message is CMTSPEECH_SSI_CONFIG_RESP.
+
+This event indicates that the cellular modem has acknowledged
+deactivation of the data path for speech frame exchange.
+
+@subsection TR_3 CMTSPEECH_TR_3_DL_START
+
+Triggering protocol message is: CMTSPEECH_SPEECH_CONFIG_REQ
+
+This event is used by the cellular modem to initiate
+transfer of downlink speech frames (from network). After
+this message, application should be prepared to receive
+CMTSPEECH_EVENT_DATA events. After this 
+event cmtspeech_is_active() will return true.
+
+@subsection TR_4 CMTSPEECH_TR_4_DL_STOP
+
+Triggering protocol message is: CMTSPEECH_SPEECH_CONFIG_REQ
+
+This event signals that call termination has started and
+the speech data stream has been closed. After this 
+event cmtspeech_is_active() will return '<code>false</code>'.
+
+Application should immediate release any uplink or downlink buffers it
+has acquired from the library. The protocol state cannot go from
+CONNECTED to DISCONNECTED until all speech buffers, acquired with
+cmtspeech_ul_buffer_acquire() and cmtspeech_dl_buffer_acquire(), have
+been released back to the library.
+
+Note that this event can occur in both ACTIVE_DL and ACTIVE_DLUL
+protocol states.
+
+@subsection TR_6 CMTSPEECH_TR_6_TIMING_UPDATE
+
+Triggering protocol message is: CMTSPEECH_TIMING_CONFIG_NTF
+
+Similar to CMTSPEECH_TR_7_TIMING_UPDATE (see @ref TR_7), but 
+the timing update was explicitly requested by APE using
+cmtspeech_send_timing_request().
+
+Note that library implementation may not necessarily be
+able to distinguish between TR_6 and TR_7, so both cases
+should be handled, and application must not rely on getting
+a TR_6 even if it issues cmtspeech_send_timing_request().
+
+@subsection TR_7 CMTSPEECH_TR_7_TIMING_UPDATE
+
+Triggering protocol message is: CMTSPEECH_TIMING_CONFIG_NTF
+
+When new uplink timing parameters are sent by the modem,
+the protocol state doesn't change, but an event is still
+generated to relay the timing information to the client.
+
+See also @ref TR_6.
+
+@subsection TR_10 CMTSPEECH_TR_10_RESET
+
+Triggering protocol message is: CMTSPEECH_EVENT_RESET
+
+This event signals an error in protocol operation. Client can check
+the event message parameter '<code>cmt_sent_req</code>'
+(::cmtspeech_event_t) to see whether it was CMT or APE that raised the
+error.
+
+@subsection TR_11 CMTSPEECH_TR_11_UL_STOP
+
+Triggering protocol message: CMTSPEECH_SPEECH_CONFIG_REQ
+
+This transition occurs when the speech channel parameters
+are changed during a call (e.g. due to a handover), and the uplink 
+frame transmission should be stopped and reconfiguration
+is complete.
+
+The application should check the ...
+
+  <code>cmtevent.msg.speech_config_req.layout_changed</code>
+
+... field of the received event (::cmtspeech_event_t). If this is set
+to '<code>true</code>', all uplink and downlink buffers currently held
+by the application have become invalid and should be released back to
+the library as soon as possible (using cmtspeech_dl_buffer_release()
+and cmtspeech_ul_buffer_release()). When the invalidated uplink buffers are
+released, no uplink frame is sent to the network.
+
+As all data traffic between APE and CMT is disabled until
+the buffers are released, application must act as quickly
+as possible. The current buffer contents are still accessible,
+so application can e.g. copy data out from the buffers, before
+releasing them back to the library.
+
+See also @ref TR_4.
+
+@subsection TR_12 CMTSPEECH_TR_12_UL_START
+
+Triggering protocol message is: CMTSPEECH_UPLINK_CONFIG_NTF
+
+With this event, cellular modem notifies APE that it 
+has configured the DMA for uplink frame transfers, and
+that APE can start sending uplink frames.
+
+Once this event is received, application should start sending 
+uplink speech frames with cmtspeech_ul_buffer_acquire() and 
+cmtspeech_ul_buffer_release(). Modem may request APE to adjust 
+the uplink timing at any time (see section @ref TR_6 and @ref TR_7).
+
+@section sect_passing_events Passing call signaling events to library
+
+The libcmtspeechdata library only handles data path communication
+towards the modem. There are however many dependencies between 
+call control signaling and the data path setup, which the library
+client is responsible to handle. 
+
+In Maemo5 (and Maemo6), client application can get the needed
+event information by subscribing to DBus events on the "com.nokia.csd.Call"
+interface. These messages are handled by Call Plugin (csd-call) to 
+the Cellular Services Daemon (csd). Additionally application needs to listen
+for modem state changes events on the "com.nokia.phone.SSC" DBus interface.
+
+The following call signaling state changes need to be relayed
+to libcmtspeechdata:
+
+@subsection server_status 1. Change in call signaling server status
+
+When call signaling is started, or call signaling has 
+terminated, client must pass the change state to 
+the library with cmtspeech_state_change_call_status() 
+API function.
+
+On Nokia modems, this state is the modem Call Server 
+status (active or inactive). In Maemo5/6, this state is 
+signaled by CSD using the 'com.nokia.csd.Call.ServerStatus' DBus 
+interface.
+
+@subsection call_connected 2. Change in call connected status
+
+When call connection status changes (audio traffic 
+channel is connected or disconnected), client must pass this
+state change to the library with 
+cmtspeech_state_change_call_connect() API function.
+
+In Maemo5/6, there are two DBus signals emitted by CSD when 
+connection status changes. The signals are 
+'com.nokia.csd.Call.Instance.AudioConnect' and 
+'com.nokia.csd.Call.UserConnection' signals (both signals
+are emitted).
+
+Again in Maemo5/6, it is currently recommended to listen to 'UserConnection(boolean)'
+and pass the paramater to libcmtspeechdata using 
+the cmtspeech_state_change_call_connect() function. If 'AudioConnect' 
+is used, the 'downlink' signal parameter should be passed on to 
+cmtspeech_state_change_call_connect(). 
+
+In addition to passing the information to the library, changes
+in call connection status may also impact application's own 
+processing logic. E.g. when call is active, but not connected, 
+the uplink frames are used only for timing. Thus the uplink frames
+provided to the library need not contain valid audio, and e.g.
+any additional CPU-intensive processing may be still disabled in
+this state. For example it is ok to send muted frames. The reason to
+keep sending uplink frames throughout calls is to maintain 
+network timing.
+
+NOTE: Unlike uplink frames, which are sent all the time during
+a call, there can be gaps in the stream of downlink data frames.
+This can happen e.g. at start of the call before call is connected
+and during call hold. It is important that the application's
+playout mechanism can handle this case.
+
+@subsect modem_state_change 3. Modem state change
+
+Monitoring modem state changes is needed purely for handling
+exceptional error cases. In practise this means uncontrolled
+modem reboots (crashes and error states that cause a forced
+reboot).
+
+In Maemo5/6, the SSCD component (System State Controller
+Daemon) emits DBus signals for all modem state changes.
+The emitted signal is "com.nokia.phone.SSC.modem_state_changed_ind".
+If the state changes to "Initialize" while a libcmtspeechdata
+instance is not in disconnected state (cmtspeech_protocol_state() !=
+CMTSPEECH_STATE_DISCONNECTED), application should consider
+the modem to have rebooted and close the library instance
+with cmtspeech_close().
+
+The consequences of not closing the library instance in 
+these error cases, are highly implementation specific. But
+for instance in Maemo5 devices, it is critical to correctly handle 
+this scenario as keeping the libcmtspeechdata instance open even 
+after the modem reboots, prevents from reestablishing the CMT-APE
+SSI connection, even if modem does succesfully boot back up.
+This is a fatal condition as the only way to recover is a reboot of
+the whole device. But with appropriate reaction to the modem
+reset, fast recovery is possible and no reboot is needed.
+
+@section sect_app_initiated_actions Actions initiated by application
+
+Once a call is established, the only libcmtspeechdata activity 
+that needs to be triggered by the application (e.g. based on audio
+hardware interrupts, or using a system timer to wake up), is sending 
+of uplink speech frames. The frames need to be sent according to 
+the timing information provided by CMT. All other actions are 
+triggered by either inbound events from the CMT, or by call 
+signaling related DBus events.
+
+One optional action the application may take is to 
+request for refreshed uplink timing. This can be accomplished 
+by calling cmtspeech_send_timing_request().
+
+<br ><br ><br ><br ><br ><br ><br ><br ><br ><br ><br ><br >
+<br ><br ><br ><br ><br ><br ><br ><br ><br ><br ><br ><br >
+
+*/

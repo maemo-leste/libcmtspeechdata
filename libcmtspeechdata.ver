@@ -1,0 +1,37 @@
+{ 
+global: 
+	cmtspeech_backend_message;
+	cmtspeech_backend_name;
+	cmtspeech_check_pending;
+	cmtspeech_close;
+	cmtspeech_descriptor;
+	cmtspeech_dl_buffer_acquire;
+	cmtspeech_dl_buffer_find_with_data;
+	cmtspeech_dl_buffer_find_with_payload;
+	cmtspeech_dl_buffer_release;
+	cmtspeech_event_to_state_transition;
+	cmtspeech_init;
+	cmtspeech_is_active;
+	cmtspeech_is_ssi_connection_enabled;
+	cmtspeech_open;
+	cmtspeech_protocol_state;
+	cmtspeech_protocol_version;
+	cmtspeech_read_event;
+	cmtspeech_send_ssi_config_request;
+	cmtspeech_send_timing_request;
+	cmtspeech_set_trace_handler;
+	cmtspeech_set_wb_preference;
+	cmtspeech_state_change_call_connect;
+	cmtspeech_state_change_call_status;
+	cmtspeech_state_change_error;
+	cmtspeech_test_data_ramp_req;
+	cmtspeech_trace_toggle;
+	cmtspeech_ul_buffer_acquire;
+	cmtspeech_ul_buffer_release;
+	cmtspeech_version_str;
+
+	cmtspeech_msg_*;
+
+local:
+	*;
+};
