@@ -179,7 +179,6 @@ static int link_updown_cmtspeech_events(struct test_ctx *ctx)
 
 static int link_updown_loop(struct test_ctx *ctx)
 {
-  int res = 0;
   struct timespec mainloop_started_at;
 
   clock_gettime(CLOCK_MONOTONIC, &mainloop_started_at);
@@ -221,6 +220,7 @@ static int link_updown_loop(struct test_ctx *ctx)
 
 	if (res < 0) {
 	  fprintf(stderr, PREFIX "cmtspeech mainloop error\n");
+	  test_state_tr(ctx, TEST_STATE_ERROR);
 	  break;
 	}
       }
@@ -245,7 +245,10 @@ static int link_updown_loop(struct test_ctx *ctx)
       test_state_tr(ctx, TEST_STATE_ERROR);
   }
 
-  return res;
+  if (ctx->state == TEST_STATE_ERROR)
+    return -1;
+
+  return 0;
 }
 
 static void handle_signal_sigint(int signr)
