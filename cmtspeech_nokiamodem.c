@@ -1048,9 +1048,9 @@ static int priv_handle_test_ramp_ping(cmtspeech_nokiamodem_t *priv, const cmtspe
 }
 
 /**
- * Returns diff of last RX buffer frame handled by the hardware
- * driver (reported via mmap segment) and latest frame handed
- * out to the application.
+ * Returns diff between the buffer position, to which hardware driver
+ * will write next (reported via mmap segment), and the application
+ * buffer position.
  *
  * In normal conditions, the delay should vary between zero
  * and 'DL_SLOTS-1'.
@@ -1069,11 +1069,11 @@ static inline int priv_rx_hw_delay(cmtspeech_nokiamodem_t *priv)
  * Returns the number of available RX buffers.
  *
  * Note that this number does not include possible frames
- * queued in the driver (see priv_rx_hw_pending()).
+ * queued in the driver (see priv_rx_hw_delay()).
  */
 static inline int priv_rx_ptr_avail(const cmtspeech_nokiamodem_t *priv)
 {
- struct cs_mmap_config_block *mmap_cfg = 
+ struct cs_mmap_config_block *mmap_cfg =
     (struct cs_mmap_config_block *)priv->d.buf;
 
  return ((mmap_cfg->rx_ptr_boundary +
@@ -1365,15 +1365,16 @@ static int priv_rx_appl_slot(cmtspeech_nokiamodem_t *priv)
     struct cs_mmap_config_block *mmap_cfg =
       (struct cs_mmap_config_block *)priv->d.buf;
     int avail = priv_rx_ptr_avail(priv);
+    int delay = priv_rx_hw_delay(priv);
 
     if (avail == mmap_cfg->rx_ptr_boundary - 1) {
       TRACE_INFO(DEBUG_PREFIX "no frames available (hw %d, appl %d, avail %d, count %u, boundary %u).",
 		 priv->rx_ptr_hw, priv->rx_ptr_appl, avail, DL_SLOTS, mmap_cfg->rx_ptr_boundary);
       return -ENODATA;
     }
-    else if (avail >= DL_SLOTS) {
-      TRACE_INFO(DEBUG_PREFIX "late appl wakeup (hw %d, appl %d, avail %d, count %u, boundary %u).",
-		 priv->rx_ptr_hw, priv->rx_ptr_appl, avail, DL_SLOTS, mmap_cfg->rx_ptr_boundary);
+    else if (delay >= DL_SLOTS) {
+      TRACE_INFO(DEBUG_PREFIX "late appl wakeup (hw %d, appl %d, delay %d, count %u, boundary %u).",
+		 priv->rx_ptr_hw, priv->rx_ptr_appl, delay, DL_SLOTS, mmap_cfg->rx_ptr_boundary);
       return -EPIPE;
     }
   }
@@ -1395,17 +1396,16 @@ static void priv_bump_rx_ptr_appl(cmtspeech_nokiamodem_t *priv)
 }
 
 /**
- * Resync buffer pointers after an RX buffer overrun.
+ * Resync buffer pointers after an RX buffer overrun. 
+ * Returns a valid 
  */
 static void priv_rx_ptr_appl_handle_xrun(cmtspeech_nokiamodem_t *priv)
 {
   assert(priv->d.flags & DRIVER_FEAT_ROLLING_RX_PTR);
 
-  while(priv_rx_ptr_avail(priv) >= DL_SLOTS) {
-    int old = priv_rx_ptr_avail(priv);
-    priv_bump_rx_ptr_appl(priv);
-    assert(priv_rx_ptr_avail(priv) < old);
-  }
+  TRACE_IO(DEBUG_PREFIX "DL xrun, reset hw/appl at %d", priv->rx_ptr_hw);
+
+  priv->rx_ptr_appl = priv->rx_ptr_hw;
 }
 
 int cmtspeech_dl_buffer_acquire(cmtspeech_t *context, cmtspeech_buffer_t **buf)
@@ -1424,17 +1424,21 @@ int cmtspeech_dl_buffer_acquire(cmtspeech_t *context, cmtspeech_buffer_t **buf)
 
   if (slot == -EPIPE) {
     priv_rx_ptr_appl_handle_xrun(priv);
-
-    slot = priv_rx_appl_slot(priv);
-    SOFT_ASSERT(slot != -EPIPE);
+    slot = priv->rx_ptr_appl % DL_SLOTS;
   }
-
-  if (slot < 0) {
+  else if (slot < 0) {
     SOFT_ASSERT(slot == -ENODATA);
     return slot;
   }
 
+  assert(slot >= 0);
+  assert(slot < DL_SLOTS);
+
   desc = &priv->dlbufdesc[slot];
+
+  /* note: must be bumped before the following checks
+   *       that might return with -EINVAL */
+  priv_bump_rx_ptr_appl(priv);
 
   if (desc->flags & BUF_INVALID)
     return -EINVAL;
@@ -1460,8 +1464,6 @@ int cmtspeech_dl_buffer_acquire(cmtspeech_t *context, cmtspeech_buffer_t **buf)
   if (priv->bcstate.sample_layout == CMTSPEECH_SAMPLE_LAYOUT_SWAPPED_LE) {
     uint8_t *mmap_slot;
 
-    assert(slot >= 0);
-    assert(slot < DL_SLOTS);
     mmap_slot = priv->d.buf + priv->d.rx_offsets[slot];
 
     /* note: Copy and swap frames from mmap area to a heap buffer. The buffer
@@ -1488,8 +1490,6 @@ int cmtspeech_dl_buffer_acquire(cmtspeech_t *context, cmtspeech_buffer_t **buf)
   if (priv->bcstate.proto_state == CMTSPEECH_STATE_TEST_RAMP_PING_ACTIVE) {
     cmtspeech_bc_test_sequence_received(&priv->bcstate);
   }
-
-  priv_bump_rx_ptr_appl(priv);
 
   return 0;
 }
