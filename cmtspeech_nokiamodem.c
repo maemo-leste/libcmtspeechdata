@@ -923,7 +923,6 @@ static int priv_handle_speech_config(cmtspeech_nokiamodem_t *priv, cmtspeech_eve
   else {
     TRACE_IO(DEBUG_PREFIX "Buffer layout changed, but application is holding to %d locked buffers. Postponing SPEECH_CONFIG_RESP reply.", priv_locked_bufdescs(priv, true));
 
-
     priv->speech_config_resp_pend = true;
     priv_invalidate_buffer_slots(priv);
 
@@ -1122,7 +1121,7 @@ static void handle_inbound_rx_data_received(cmtspeech_nokiamodem_t *priv, const 
     /* xrun case 2:
      *     The slot, to which driver will write next, is still owned
      *     by application - overrun is not certain, but data
-     *     coherency cannot guaranteed, so reporting as an XRUN */
+     *     coherency cannot be guaranteed, so reporting as an XRUN */
 
     TRACE_INFO(DEBUG_PREFIX "possible DL buffer overrun (hw %d, appl %d, slot %u, count %u).", 
 	       priv->rx_ptr_hw, priv->rx_ptr_appl, next_slot, DL_SLOTS);
@@ -1290,7 +1289,7 @@ int cmtspeech_check_pending(cmtspeech_t *context, int *flags)
   cmtspeech_nokiamodem_t *priv = (cmtspeech_nokiamodem_t*)context;
   cmtspeech_cmd_t cmd;
   int i, res = 0;
-  
+
   if (!flags)
     return -1;
 
@@ -1609,7 +1608,7 @@ int cmtspeech_ul_buffer_acquire(cmtspeech_t *context, cmtspeech_buffer_t **buf)
   desc->bd.frame_flags = 0;
   desc->flags |= BUF_LOCKED;
 
-  /* note: some fields are set at buffer setup time in 
+  /* note: some fields are set at buffer setup time in
    *       priv_setup_driver_bufconfig() */
   SOFT_ASSERT(desc->bd.type == CMTSPEECH_BUFFER_TYPE_PCM_S16_LE);
   SOFT_ASSERT(desc->bd.count == (int)priv->slot_size);
@@ -1618,12 +1617,11 @@ int cmtspeech_ul_buffer_acquire(cmtspeech_t *context, cmtspeech_buffer_t **buf)
   SOFT_ASSERT(desc->bd.payload == desc->bd.data + CMTSPEECH_DATA_HEADER_LEN);
   SOFT_ASSERT(desc->bd.index == priv->ul_slot_app);
 
-
   *buf = &priv->ulbufdesc[priv->ul_slot_app].bd;
 
   ++priv->ul_slot_app;
   priv->ul_slot_app %= UL_SLOTS;
-  
+
   return 0;
 }
 
@@ -1689,7 +1687,7 @@ int cmtspeech_ul_buffer_release(cmtspeech_t *context, cmtspeech_buffer_t *buf)
     else {
       TRACE_IO("UL frame send failed with %d (%d: %s)", res, errno, strerror(errno));
 
-      if (res < 0 && 
+      if (res < 0 &&
 	  errno == EBUSY) {
 	res = -EBUSY;
 	++priv->ul_errors;
