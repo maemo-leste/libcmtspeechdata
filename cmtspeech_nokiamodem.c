@@ -227,17 +227,10 @@ static int priv_write(cmtspeech_nokiamodem_t *priv, cmtspeech_cmd_t msg)
 /**
  * Lock/unlocks system resources so that no changes in DVFS mods
  * that would impact SSI driver clocking will be initiated.
- * 
- * This step is needed with some versions of the CMT Data Speech
- * protocol, which do not support signaling related to DVFS 
- * operating point changes between APE and the modem.
  */
 static void priv_set_ssi_lock(cmtspeech_nokiamodem_t *priv, bool enabled) 
 {
   int fd;
-
-  if (cmtspeech_protocol_version() != 1)
-    return;
 
   fd =
     open(PM_VDD2_LOCK_INTERFACE, O_WRONLY, 0);
