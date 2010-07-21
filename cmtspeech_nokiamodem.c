@@ -202,7 +202,7 @@ static int priv_msg_encode_driver_message(cmtspeech_cmd_t *cmd, uint8_t type, ui
   cmd->d.buf[BYTE1] = 0x0;
   cmd->d.buf[BYTE2] = 0x0;
   cmd->d.buf[BYTE3] = param & CMD_PARAM_MASK;
-  
+ 
   return 4;
 }
 
@@ -210,10 +210,10 @@ static int priv_write_data(cmtspeech_nokiamodem_t *priv, cmtspeech_cmd_t msg)
 {
   int res =
     write(priv->d.fd, msg.d.buf, sizeof(msg));
-  TRACE_DEBUG(DEBUG_PREFIX "wrote %s, fd %d, res %d.", 
+  TRACE_DEBUG(DEBUG_PREFIX "wrote %s, fd %d, res %d.",
 	      cmtspeech_msg_type_to_string(msg), priv->d.fd, res);
 
-  /* note: priv->bcstate.io_errors are not updated for data 
+  /* note: priv->bcstate.io_errors are not updated for data
    *       i/o for performance reasons */
 
   return res;
@@ -228,7 +228,7 @@ static int priv_write(cmtspeech_nokiamodem_t *priv, cmtspeech_cmd_t msg)
  * Lock/unlocks system resources so that no changes in DVFS mods
  * that would impact SSI driver clocking will be initiated.
  */
-static void priv_set_ssi_lock(cmtspeech_nokiamodem_t *priv, bool enabled) 
+static void priv_set_ssi_lock(cmtspeech_nokiamodem_t *priv, bool enabled)
 {
   int fd;
 
@@ -238,7 +238,7 @@ static void priv_set_ssi_lock(cmtspeech_nokiamodem_t *priv, bool enabled)
   if (fd >= 0) {
     char buf[2];
     int res;
-    snprintf(buf, sizeof(buf), "%hu", 
+    snprintf(buf, sizeof(buf), "%hu",
 	     enabled == true ? PM_VDD2_LOCK_TO_OPP3 : PM_VDD2_UNLOCK);
     res = write(fd, buf, sizeof(buf));
     TRACE_IO("setting VDD2 lock to '%s', res %d.", buf, res);
@@ -252,13 +252,13 @@ static void priv_set_ssi_lock(cmtspeech_nokiamodem_t *priv, bool enabled)
 /**
  * Allocates SSI wakeline from the driver.
  *
- * Note: this function requires a kernel driver that uses 
+ * Note: this function requires a kernel driver that uses
  *       the SSI control channel for wakeline signaling.
  *
  * @param priv context
  * @param id bitmask identifying the wakeline user (see WAKELINE_*)
 
- * @return zero on success, non-zero if errors in raising 
+ * @return zero on success, non-zero if errors in raising
  *         the wakeline
  */
 static int priv_acquire_wakeline(cmtspeech_nokiamodem_t *priv, int id)
@@ -266,7 +266,7 @@ static int priv_acquire_wakeline(cmtspeech_nokiamodem_t *priv, int id)
   int res = 0;
   if (priv->d.wakeline_users == 0) {
     unsigned int status = 1;
-    res = ioctl (priv->d.fd, CS_SET_WAKELINE, &status);  
+    res = ioctl (priv->d.fd, CS_SET_WAKELINE, &status);
     TRACE_IO(DEBUG_PREFIX "Toggled SSI wakeline to %u by id %02x (res %d).", status, id, res);
 
     /* step: lock VDD2 whenever modem needs to be able to send
@@ -283,7 +283,7 @@ static int priv_acquire_wakeline(cmtspeech_nokiamodem_t *priv, int id)
  *
  * @param priv context
  * @param id bitmask identifying the wakeline user (see WAKELINE_*)
- * @return zero on success, non-zero if errors in raising 
+ * @return zero on success, non-zero if errors in raising
  *         the wakeline
  */
 static int priv_release_wakeline(cmtspeech_nokiamodem_t *priv, int id)
@@ -294,7 +294,7 @@ static int priv_release_wakeline(cmtspeech_nokiamodem_t *priv, int id)
     priv->d.wakeline_users &= ~id;
     if (priv->d.wakeline_users == 0) {
       unsigned int status = 0;
-      res = ioctl (priv->d.fd, CS_SET_WAKELINE, &status);  
+      res = ioctl (priv->d.fd, CS_SET_WAKELINE, &status);
       TRACE_IO(DEBUG_PREFIX "Toggled SSI wakeline to %u by id %02x (res %d).", status, id, res);
 
       /* step: unlock VDD2 whenever we are sure modem no longer needs
@@ -341,7 +341,7 @@ static int priv_send_reset(cmtspeech_nokiamodem_t *priv)
     cmtspeech_cmd_t msg;
     cmtspeech_msg_encode_reset_conn_req(&msg);
 
-    /* note: priv_write() causes a state transition by 
+    /* note: priv_write() causes a state transition by
     *        call cmtspeech_bc_post_command() */
 
     res = priv_write(priv, msg);
@@ -350,11 +350,11 @@ static int priv_send_reset(cmtspeech_nokiamodem_t *priv)
     }
   }
 
-  
-  /* step: Reset the driver buffer configuration to initial 
+
+  /* step: Reset the driver buffer configuration to initial
    *       state. This is done already after sending the
-   *       request as it is possible that CMT has become 
-   *       unavailable and there will be no response. 
+   *       request as it is possible that CMT has become
+   *       unavailable and there will be no response.
    *
    *       Note that we must still keep the wakeline up.
    *       Otherwise CMT would not be able to send a response.
@@ -393,7 +393,7 @@ static void priv_initialize_buffer_descriptor(nokiamodem_buffer_desc_t *bd, uint
 static void priv_initialize_tx_buffer_descriptors_mmap(cmtspeech_nokiamodem_t *priv, int desc_flags)
 {
   int i;
-  struct cs_mmap_config_block *mmap_cfg = 
+  struct cs_mmap_config_block *mmap_cfg =
     (struct cs_mmap_config_block *)priv->d.buf;
 
   for(i = 0; i < UL_SLOTS; i++) {
@@ -421,7 +421,7 @@ static void priv_initialize_rx_buffer_descriptors_mmap(cmtspeech_nokiamodem_t *p
 /**
  * Reinitializes the DL buffer descriptors in case the sample
  * layout has changed.
- * 
+ *
  * Note: priv_initialize_dl_buffer_descriptors*() must be called
  * at least once before this function.
  */
@@ -433,14 +433,14 @@ static void priv_update_dl_buffer_descriptors(cmtspeech_nokiamodem_t *priv)
     uint8_t *slotbuf_i;
 
     if (priv->bcstate.sample_layout == CMTSPEECH_SAMPLE_LAYOUT_SWAPPED_LE) {
-      slotbuf_i = 
+      slotbuf_i =
 	priv->d.dlswapbuf + i * priv->slot_size;
     }
     else {
-      slotbuf_i = 
+      slotbuf_i =
 	priv->d.buf + priv->d.rx_offsets[i];
     }
-    
+
     priv_initialize_buffer_descriptor(&priv->dlbufdesc[i],
 				      slotbuf_i,
 				      priv->slot_size,
@@ -466,7 +466,7 @@ static void priv_handle_ssi_config_resp(cmtspeech_nokiamodem_t *priv)
     if (priv->slot_size > 0)
       priv_update_dl_buffer_descriptors(priv);
   }
-  
+
   return;
 }
 
@@ -479,7 +479,7 @@ static inline int priv_locked_bufdescs(cmtspeech_nokiamodem_t *priv, bool verbos
     if (priv->ulbufdesc[i].flags & BUF_LOCKED) {
       ++locked;
       if (verbose == true)
-	TRACE_IO(DEBUG_PREFIX "UL buf %i(%p,data:%p) locked.", 
+	TRACE_IO(DEBUG_PREFIX "UL buf %i(%p,data:%p) locked.",
 		 i, &priv->ulbufdesc[i].bd, priv->ulbufdesc[i].bd.data);
     }
 
@@ -487,7 +487,7 @@ static inline int priv_locked_bufdescs(cmtspeech_nokiamodem_t *priv, bool verbos
     if (priv->dlbufdesc[i].flags & BUF_LOCKED) {
       ++locked;
       if (verbose == true)
-	TRACE_IO(DEBUG_PREFIX "DL buf %i(%p,data:%p) locked.", 
+	TRACE_IO(DEBUG_PREFIX "DL buf %i(%p,data:%p) locked.",
 		 i, &priv->dlbufdesc[i].bd, priv->dlbufdesc[i].bd.data);
     }
 
@@ -497,7 +497,7 @@ static inline int priv_locked_bufdescs(cmtspeech_nokiamodem_t *priv, bool verbos
 /**
  * Marks all buffer descriptors as invalid. This is needed
  * when buffer layout needs to be changed, but application
- * is holding on to some buffer descriptors. The actual 
+ * is holding on to some buffer descriptors. The actual
  * change in layout has to be postponed until all invalid
  * buffers are released back to the library.
  *
@@ -519,7 +519,7 @@ static int priv_invalidate_buffer_slots(cmtspeech_nokiamodem_t *priv)
 /**
  * Resets state related to data path configuration. Should be
  * only called from priv_setup_driver_bufconfig().
- */ 
+ */
 static void priv_reset_buf_state_to_disconnected(cmtspeech_nokiamodem_t *priv)
 {
   priv->slot_size = 0;
@@ -613,7 +613,7 @@ int cmtspeech_close(cmtspeech_t *context)
     /* step: finally free the context pointer itself*/
     free(priv);
   }
-  else 
+  else
     res = -1;
 
   return res;
@@ -704,7 +704,7 @@ static int priv_setup_driver_bufconfig_v2api(cmtspeech_nokiamodem_t *priv)
   unsigned int if_ver;
 
   memset(&drvcfg, 0, sizeof(drvcfg));
-     
+
   /* step: fill the driver config struct */
   drvcfg.buf_size = priv->slot_size;
   drvcfg.rx_bufs = DL_SLOTS;
@@ -733,11 +733,11 @@ static int priv_setup_driver_bufconfig_v2api(cmtspeech_nokiamodem_t *priv)
 
     /* note: run following only when activating */
     if (priv->slot_size > 0) {
-      for(i = 0; i < DL_SLOTS; i++) 
+      for(i = 0; i < DL_SLOTS; i++)
 	TRACE_IO(DEBUG_PREFIX "mmap_cfg: rxbuf #%u = %u",
 		 i, mmap_cfg->rx_offsets[i]);
 
-      for(i = 0; i < UL_SLOTS; i++) 
+      for(i = 0; i < UL_SLOTS; i++)
 	TRACE_IO(DEBUG_PREFIX "mmap_cfg: txbuf #%u = %u",
 		 i, mmap_cfg->tx_offsets[i]);
 
@@ -807,9 +807,9 @@ static int priv_setup_and_send_speech_config_reply(cmtspeech_nokiamodem_t *priv)
   reply_result = (res == 0 ? 0 : 1);
 
   /* step: encode and send the reply to CMT */
-  res = cmtspeech_msg_encode_speech_config_resp(&respcmd, 
+  res = cmtspeech_msg_encode_speech_config_resp(&respcmd,
 						reply_result);
-    
+
   /* step: send the response */
   res = priv_write(priv, respcmd);
   if (res == CMTSPEECH_CTRL_LEN) {
@@ -822,15 +822,15 @@ static int priv_setup_and_send_speech_config_reply(cmtspeech_nokiamodem_t *priv)
 }
 
 /**
- * Completes processing of SPEECH_CONFIG_REQ. 
+ * Completes processing of SPEECH_CONFIG_REQ.
  *
  * This function should be called when SPEECH_CONFIG_REQ
  * processing is blocked due to locked buffers, and when
- * one or more buffers have been released by 
+ * one or more buffers have been released by
  * the application. When the last locked buffer has
- * been released, this function will complete 
- * transaction and send a SPEECH_CONFIG_RESP. This 
- * process also involves resetting the driver buffer 
+ * been released, this function will complete
+ * transaction and send a SPEECH_CONFIG_RESP. This
+ * process also involves resetting the driver buffer
  * layout and restarting the DMA requests.
  */
 static int priv_drvbuf_layout_change_buffer_released(cmtspeech_nokiamodem_t *priv, nokiamodem_buffer_desc_t*descs, cmtspeech_buffer_t *buf)
@@ -901,15 +901,15 @@ static int priv_handle_speech_config(cmtspeech_nokiamodem_t *priv, cmtspeech_eve
     TRACE_DEBUG(DEBUG_PREFIX "Parsing SPEECH_CONFIG_REQ, call terminated.");
   }
 
-  /* note: DMA reconfiguration is needed in all cases, so 
-   *       layout is marked as changed even in cases where 
+  /* note: DMA reconfiguration is needed in all cases, so
+   *       layout is marked as changed even in cases where
    *       the frame size remains the same. */
   event->msg.speech_config_req.layout_changed = true;
 
   if (priv_locked_bufdescs(priv, false) == 0) {
     /* note: If no buffers are currently locked by the application,
      *       continue to execute the change immediately. This
-     *       action will cancel all pending DMA transfers (both UL 
+     *       action will cancel all pending DMA transfers (both UL
      *       and DL), as well as reset the mmap area state. */
     res = priv_setup_and_send_speech_config_reply(priv);
   }
@@ -951,11 +951,11 @@ static int priv_handle_reset_conn_req(cmtspeech_nokiamodem_t *priv)
   if (i == CMTSPEECH_CTRL_LEN) {
     res = 0;
   }
-  
+
   /* step: Reset driver state. See notes in priv_send_reset().
    *       As reset has been initiated by CMT, we can close
    *       the wakeline already at this point.
-   */ 
+   */
   priv_initialize_after_peer_reset(priv);
 
   return res;
@@ -993,13 +993,13 @@ static int priv_handle_test_ramp_ping(cmtspeech_nokiamodem_t *priv, const cmtspe
   int res = 0, i;
   uint8_t channel, replychannel, rampstart, ramplen;
   const unsigned int ul_slot = 0;
-  uint8_t *slotbuf = priv->d.buf + 
+  uint8_t *slotbuf = priv->d.buf +
     priv->d.tx_offsets[ul_slot];
 
   SOFT_ASSERT(cmtspeech_msg_get_domain(cmd) == CMTSPEECH_DOMAIN_CONTROL);
   SOFT_ASSERT(cmtspeech_msg_get_type(cmd) == CMTSPEECH_TEST_RAMP_PING);
 
-  cmtspeech_msg_decode_test_ramp_ping(cmd, 
+  cmtspeech_msg_decode_test_ramp_ping(cmd,
 				      &channel,
 				      &replychannel,
 				      &rampstart,
@@ -1007,7 +1007,7 @@ static int priv_handle_test_ramp_ping(cmtspeech_nokiamodem_t *priv, const cmtspe
 
   TRACE_IO(DEBUG_PREFIX "Handling inbound TEST_RAMP_PING (ch:%u, replych:%u, start-val:0x%02x, ramplen %u words).", 
 		 channel, replychannel, rampstart, ramplen);
-  
+
   res = priv_acquire_wakeline(priv, WAKELINE_TEST_RAMP_PING);
   SOFT_ASSERT(res == 0);
 
@@ -1029,12 +1029,12 @@ static int priv_handle_test_ramp_ping(cmtspeech_nokiamodem_t *priv, const cmtspe
   for(i = 0; i < ramplen*4; i++)
     slotbuf[i] = rampstart++;
 
-  /* notify driver that slot '0' is ready for sending */    
+  /* notify driver that slot '0' is ready for sending */
   res = priv_msg_encode_driver_message(&respcmd, CS_COMMAND(CS_TX_DATA_READY), ul_slot & CMD_PARAM_MASK);
   if (res == CMTSPEECH_CTRL_LEN)
     res = priv_write(priv, respcmd);
 
-  if (res == CMTSPEECH_CTRL_LEN) 
+  if (res == CMTSPEECH_CTRL_LEN)
     return 0;
 
   return -1;
@@ -1116,7 +1116,7 @@ static void handle_inbound_rx_data_received(cmtspeech_nokiamodem_t *priv, const 
      *     by application - overrun is not certain, but data
      *     coherency cannot be guaranteed, so reporting as an XRUN */
 
-    TRACE_INFO(DEBUG_PREFIX "possible DL buffer overrun (hw %d, appl %d, slot %u, count %u).", 
+    TRACE_INFO(DEBUG_PREFIX "possible DL buffer overrun (hw %d, appl %d, slot %u, count %u).",
 	       priv->rx_ptr_hw, priv->rx_ptr_appl, next_slot, DL_SLOTS);
 
     priv->dlbufdesc[next_slot].flags |= BUF_XRUN;
@@ -1127,7 +1127,7 @@ static void handle_inbound_rx_data_received(cmtspeech_nokiamodem_t *priv, const 
     /* xrun case 3:
      *     The slot last used by driver is still owned by application */
 
-    TRACE_INFO(DEBUG_PREFIX "DL buffer overrun (hw %d, appl %d, slot %u, count %u).", 
+    TRACE_INFO(DEBUG_PREFIX "DL buffer overrun (hw %d, appl %d, slot %u, count %u).",
 	       priv->rx_ptr_hw, priv->rx_ptr_appl, last_slot, DL_SLOTS);
 
     /* note: mark the overrun buffer and raise an event bit */
@@ -1160,7 +1160,7 @@ static int handle_inbound_control_message(cmtspeech_nokiamodem_t *priv, const cm
   int channel =
     cmtspeech_msg_get_domain(cmd);
 
-  TRACE_DEBUG(DEBUG_PREFIX "handling bytes %02X:%02X:%02X:%02X, on channel %d.", 
+  TRACE_DEBUG(DEBUG_PREFIX "handling bytes %02X:%02X:%02X:%02X, on channel %d.",
 	      cmd.d.buf[0], cmd.d.buf[1], cmd.d.buf[2], cmd.d.buf[3], cmtspeech_msg_get_domain(cmd));
 
   if (channel == CMTSPEECH_DOMAIN_CONTROL) {
@@ -1168,7 +1168,7 @@ static int handle_inbound_control_message(cmtspeech_nokiamodem_t *priv, const cm
     cmtspeech_event_t cmtevent;
     int retval;
 
-    TRACE_IO(DEBUG_PREFIX "read bytes %02X:%02X:%02X:%02X, control channel message (%s).", 
+    TRACE_IO(DEBUG_PREFIX "read bytes %02X:%02X:%02X:%02X, control channel message (%s).",
 	     cmd.d.buf[0], cmd.d.buf[1], cmd.d.buf[2], cmd.d.buf[3], cmtspeech_msg_type_to_string(cmd));
 
     retval = cmtspeech_bc_handle_command(&priv->bcstate, priv, cmd, &cmtevent);
@@ -1181,19 +1181,19 @@ static int handle_inbound_control_message(cmtspeech_nokiamodem_t *priv, const cm
 	case CMTSPEECH_RESET_CONN_REQ:
 	  priv_handle_reset_conn_req(priv);
 	  break;
-	  
+
 	case CMTSPEECH_RESET_CONN_RESP:
 	  priv_handle_reset_response(priv);
 	  break;
-	  
+
 	case CMTSPEECH_SSI_CONFIG_RESP:
 	  priv_handle_ssi_config_resp(priv);
 	  break;
-	  
+
 	case CMTSPEECH_SPEECH_CONFIG_REQ:
 	  priv_handle_speech_config(priv, &cmtevent);
 	  break;
-	  
+
 	case CMTSPEECH_TIMING_CONFIG_NTF:
 	  {
 	    /* note: copy the kernel timestamp for the message */
@@ -1201,26 +1201,25 @@ static int handle_inbound_control_message(cmtspeech_nokiamodem_t *priv, const cm
 	    memcpy(&cmtevent.msg.timing_config_ntf.tstamp, s, sizeof(*s));
 	  }
 	  break;
-	  
+
 	case CMTSPEECH_UPLINK_CONFIG_NTF:
 	  break;
-	  
+
 	case CMTSPEECH_TEST_RAMP_PING:
 	  priv_handle_test_ramp_ping(priv, cmd);
 	  break;
-	  
+
 	default:
 	  TRACE_ERROR(DEBUG_PREFIX "ERROR: unknown control message of type %d.", type);
 	  SOFT_ASSERT(false);
 	}
-      
+
       ONDEBUG(
-	      struct timespec *s = (struct timespec *)(priv->d.buf + priv->d.stamp_rx_ctrl_offset); 
-	      if (priv->d.stamp_rx_ctrl_offset > 0) 
-		cmtspeech_trace_message(CMTSPEECH_TRACE_DEBUG, 
+	      struct timespec *s = (struct timespec *)(priv->d.buf + priv->d.stamp_rx_ctrl_offset);
+	      if (priv->d.stamp_rx_ctrl_offset > 0)
+		cmtspeech_trace_message(CMTSPEECH_TRACE_DEBUG,
 					DEBUG_PREFIX " control message received at %ld:%ldns.", s->tv_sec, s->tv_nsec)
 	      );
-      
 
       cmtspeech_bc_complete_event_processing(&priv->bcstate, priv, &cmtevent);
 
@@ -1232,8 +1231,8 @@ static int handle_inbound_control_message(cmtspeech_nokiamodem_t *priv, const cm
     }
   }
   else if (channel == CMTSPEECH_DOMAIN_INTERNAL) {
-    /* note: internal messages are generated by the backend 
-     *       and are not sent by the CMT; they are primarily 
+    /* note: internal messages are generated by the backend
+     *       and are not sent by the CMT; they are primarily
      *       used for wake-ups */
 
     switch(type)
@@ -1293,7 +1292,7 @@ int cmtspeech_check_pending(cmtspeech_t *context, int *flags)
     res = handle_inbound_control_message(priv, cmd, flags);
     TRACE_DEBUG(DEBUG_PREFIX "read %d from cmtspeech device, handle res %d.", i, res);
   }
-  else 
+  else
     TRACE_ERROR(DEBUG_PREFIX "read returned %d.", i);
 
   return res;
@@ -1377,7 +1376,7 @@ static int priv_rx_appl_slot(cmtspeech_nokiamodem_t *priv)
 
 static void priv_bump_rx_ptr_appl(cmtspeech_nokiamodem_t *priv)
 {
-  struct cs_mmap_config_block *mmap_cfg = 
+  struct cs_mmap_config_block *mmap_cfg =
     (struct cs_mmap_config_block *)priv->d.buf;
 
   ++priv->rx_ptr_appl;
@@ -1389,8 +1388,8 @@ static void priv_bump_rx_ptr_appl(cmtspeech_nokiamodem_t *priv)
 }
 
 /**
- * Resync buffer pointers after an RX buffer overrun. 
- * Returns a valid 
+ * Resync buffer pointers after an RX buffer overrun.
+ * Returns a valid
  */
 static void priv_rx_ptr_appl_handle_xrun(cmtspeech_nokiamodem_t *priv)
 {
@@ -1466,12 +1465,12 @@ int cmtspeech_dl_buffer_acquire(cmtspeech_t *context, cmtspeech_buffer_t **buf)
     SOFT_ASSERT(desc->bd.data != mmap_slot);
     memcpy(desc->bd.data, mmap_slot, desc->bd.count);
 
-    if (desc->bd.pcount > 0) 
+    if (desc->bd.pcount > 0)
       priv_inplace_halfword_swap(desc->bd.payload, desc->bd.pcount);
   }
 #endif
 
-  /* note: some fields are set at buffer setup time in 
+  /* note: some fields are set at buffer setup time in
    *       priv_setup_driver_bufconfig() */
   SOFT_ASSERT(desc->bd.type == CMTSPEECH_BUFFER_TYPE_PCM_S16_LE);
   SOFT_ASSERT(desc->bd.count == (int)priv->slot_size);
@@ -1548,7 +1547,7 @@ int cmtspeech_test_data_ramp_req(cmtspeech_t *context, uint8_t rampstart, uint8_
   res = priv_init_bufconfig_for_test_ramp_ping(priv, ramplen);
   if (res < 0)
     return res;
-  
+
   res = priv_acquire_wakeline(priv, WAKELINE_TEST_RAMP_PING);
   if (res < 0)
     return res;
