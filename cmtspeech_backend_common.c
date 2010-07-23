@@ -468,6 +468,9 @@ int cmtspeech_bc_handle_command(cmtspeech_bc_state_t *state, cmtspeech_t *pconte
 	  state->priv_state == BC_STATE_DISCONNECTING) {
 	priv_state_change_to(state, -1, BC_STATE_IN_SYNC);
       }
+      /* note: no other way to recover from this case than to
+       *       ask for a protocol reset */
+      cmtspeech_state_change_error(pcontext);
     }
   }
   else if (type == CMTSPEECH_RESET_CONN_REQ) {
