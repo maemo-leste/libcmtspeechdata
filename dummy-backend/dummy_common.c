@@ -171,7 +171,9 @@ dummy_tone_t *dummy_tone_initialize(const char *typestr)
 	    free(tone);
 	    tone = NULL;
 	  }
-	  ONTRACE(printf(DEBUG_PREFIX "tone buf created of length %d, file %s, len %d, res %d.\n", tone->tone_len, dummysrc, len, res));
+	  else {
+	    ONTRACE(printf(DEBUG_PREFIX "tone buf created of length %d, file %s, len %d, res %d.\n", tone->tone_len, dummysrc, len, res));
+	  }
 	}
 	else {
 	  free(tone);
