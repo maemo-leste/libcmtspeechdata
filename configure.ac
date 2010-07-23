@@ -10,7 +10,7 @@ AC_PREREQ(2.57)
 dnl information on the package
 dnl ---------------------------
 
-AC_INIT([libcmtspeechdata], [2.0.7])
+AC_INIT([libcmtspeechdata], [2.0.8])
 AC_CONFIG_SRCDIR([cmtspeech.h])
 AM_INIT_AUTOMAKE([foreign])
 AM_MAINTAINER_MODE
