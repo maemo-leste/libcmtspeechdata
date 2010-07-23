@@ -921,15 +921,13 @@ static int priv_handle_speech_config(cmtspeech_nokiamodem_t *priv, cmtspeech_eve
      *       continue to execute the change immediately. This
      *       action will cancel all pending DMA transfers (both UL
      *       and DL), as well as reset the mmap area state. */
-    priv_setup_and_send_speech_config_reply(priv);
+    res = priv_setup_and_send_speech_config_reply(priv);
   }
   else {
     TRACE_IO(DEBUG_PREFIX "Buffer layout changed, but application is holding to %d locked buffers. Postponing SPEECH_CONFIG_RESP reply.", priv_locked_bufdescs(priv, true));
 
     priv->speech_config_resp_pend = true;
     priv_invalidate_buffer_slots(priv);
-
-    res = 0;
   }
 
   return res;
