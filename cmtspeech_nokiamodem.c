@@ -796,15 +796,15 @@ static int priv_setup_driver_bufconfig(cmtspeech_nokiamodem_t *priv)
  */
 static int priv_setup_and_send_speech_config_reply(cmtspeech_nokiamodem_t *priv)
 {
-  int res;
+  int res, setupres;
   uint8_t reply_result = 0;
   cmtspeech_cmd_t respcmd;
 
   priv->speech_config_resp_pend = false;
-  res = priv_setup_driver_bufconfig(priv);
+  setupres = priv_setup_driver_bufconfig(priv);
 
   /* step: convert result into protocol syntax */
-  reply_result = (res == 0 ? 0 : 1);
+  reply_result = (setupres == 0 ? 0 : 1);
 
   /* step: encode and send the reply to CMT */
   res = cmtspeech_msg_encode_speech_config_resp(&respcmd,
@@ -817,6 +817,14 @@ static int priv_setup_and_send_speech_config_reply(cmtspeech_nokiamodem_t *priv)
   }
   else
     res = -1;
+
+  if (setupres != 0) {
+    /* we cannot properly receover from local speech_config error,
+     * so send a request to reset the state to modem */
+    TRACE_ERROR(DEBUG_PREFIX "Setting up driver buffers failed %d.", res);
+    priv_invalidate_buffer_slots(priv);
+    priv_send_reset(priv);
+  }
 
   return res;
 }
@@ -850,7 +858,7 @@ static int priv_drvbuf_layout_change_buffer_released(cmtspeech_nokiamodem_t *pri
   if (locked == 0) {
     int res = priv_setup_and_send_speech_config_reply(priv);
     if (res != 0) {
-      TRACE_INFO(DEBUG_PREFIX "Sending SPEECH_CONFIG_RESP (delayed) failed with %d.", res);
+      TRACE_ERROR(DEBUG_PREFIX "Sending SPEECH_CONFIG_RESP (delayed) failed with %d.", res);
       priv_invalidate_buffer_slots(priv);
     }
     SOFT_ASSERT(priv->speech_config_resp_pend != true);
@@ -911,7 +919,7 @@ static int priv_handle_speech_config(cmtspeech_nokiamodem_t *priv, cmtspeech_eve
      *       continue to execute the change immediately. This
      *       action will cancel all pending DMA transfers (both UL
      *       and DL), as well as reset the mmap area state. */
-    res = priv_setup_and_send_speech_config_reply(priv);
+    priv_setup_and_send_speech_config_reply(priv);
   }
   else {
     TRACE_IO(DEBUG_PREFIX "Buffer layout changed, but application is holding to %d locked buffers. Postponing SPEECH_CONFIG_RESP reply.", priv_locked_bufdescs(priv, true));

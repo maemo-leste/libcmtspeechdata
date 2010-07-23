@@ -544,10 +544,13 @@ void cmtspeech_bc_post_command(cmtspeech_bc_state_t *state, cmtspeech_t *pcontex
       /* state machine assertions */
       SOFT_ASSERT(state->priv_state == BC_STATE_CONFIG_ACT_PEND ||
 		  state->priv_state == BC_STATE_CONFIG_DEACT_PEND);
-      
+
       /* state machine transitions */
       if (resp != 0) {
 	/* note: transaction has failed, do not change the state */
+	TRACE_ERROR(DEBUG_PREFIX "unable to change %s state due to local error",
+		    (state->priv_state == BC_STATE_CONFIG_ACT_PEND) ?
+		    "to ACTIVE_DL" : "back to CONNECTED");
 	priv_state_change_to(state, -1, BC_STATE_IN_SYNC);
       }
       else {
