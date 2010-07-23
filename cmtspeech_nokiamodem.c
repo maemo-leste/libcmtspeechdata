@@ -342,7 +342,7 @@ static int priv_send_reset(cmtspeech_nokiamodem_t *priv)
     cmtspeech_msg_encode_reset_conn_req(&msg);
 
     /* note: priv_write() causes a state transition by
-    *        call cmtspeech_bc_post_command() */
+     *       call cmtspeech_bc_post_command() */
 
     res = priv_write(priv, msg);
     if (res < 0) {
@@ -1248,22 +1248,21 @@ static int handle_inbound_control_message(cmtspeech_nokiamodem_t *priv, const cm
 	break;
 #endif
 
-#ifdef CS_CDSP_RESET_DONE
-      case CS_COMMAND(CS_CDSP_RESET_DONE):
+      case CS_COMMAND(CS_ERROR):
 	{
 	  cmtspeech_event_t cmtevent;
-          TRACE_ERROR(DEBUG_PREFIX "ERROR: PEER_RESET received, reseting state");
+          TRACE_ERROR(DEBUG_PREFIX "ERROR: ERROR indication %d received, reseting state",
+		      cmd.d.cmd & CMD_PARAM_MASK);
 	  cmtevent.msg_type = CMTSPEECH_EVENT_RESET;
 	  cmtevent.prev_state = priv->bcstate.proto_state;
-	  cmtevent.msg.reset_done.cmt_sent_req = 1;
+	  cmtevent.msg.reset_done.cmt_sent_req = 0;
 	  priv_initialize_after_peer_reset(priv);
 	  cmtevent.state = priv->bcstate.proto_state;
 	  priv_queue_control_event(priv, &cmtevent);
 	  *flags |= CMTSPEECH_EVENT_CONTROL;
 	  res = 1;
+	  break;
 	}
-	break;
-#endif
 
       default:
 	TRACE_ERROR(DEBUG_PREFIX "ERROR: unknown control message of type %d (%02X:%02X:%02X:%02x).", 

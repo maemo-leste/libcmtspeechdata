@@ -473,8 +473,7 @@ int cmtspeech_bc_handle_command(cmtspeech_bc_state_t *state, cmtspeech_t *pconte
   else if (type == CMTSPEECH_RESET_CONN_REQ) {
     TRACE_IO(DEBUG_PREFIX "Generating event: CMTSPEECH_EVENT_RESET (CMT initiated)");
     event->msg_type = CMTSPEECH_EVENT_RESET;
-
-    event->msg.reset_done.cmt_sent_req = 1; 
+    event->msg.reset_done.cmt_sent_req = 1;
 
     /* state machine assertion */
     STATE_ASSERT(state->proto_state != CMTSPEECH_STATE_DISCONNECTED);
@@ -485,8 +484,8 @@ int cmtspeech_bc_handle_command(cmtspeech_bc_state_t *state, cmtspeech_t *pconte
   else if (type == CMTSPEECH_RESET_CONN_RESP) {
     int cached_priv_state = state->priv_state;
     TRACE_IO(DEBUG_PREFIX "Generating event: CMTSPEECH_EVENT_RESET (APE initiated)");
-    event->msg.reset_done.cmt_sent_req = 0; 
     event->msg_type = CMTSPEECH_EVENT_RESET;
+    event->msg.reset_done.cmt_sent_req = 0;
 
     /* state machine assertion */
     STATE_ASSERT(state->proto_state != CMTSPEECH_STATE_DISCONNECTED);
