@@ -890,12 +890,14 @@ static int priv_handle_speech_config(cmtspeech_nokiamodem_t *priv, cmtspeech_eve
     else {
       TRACE_ERROR(DEBUG_PREFIX "Invalid sample rate (%u) in SPEECH_CONFIG_REQ.", 
 		 event->msg.speech_config_req.sample_rate);
+      /* FIXME: this error should be propagated so an error response
+       *        is sent back to peer */
       frame_size = -1;
       priv->slot_size = 0;
       res = 1;
     }
 
-    if (frame_size > 0) 
+    if (frame_size > 0)
       priv->slot_size = frame_size + CMTSPEECH_DATA_HEADER_LEN;
   }
   else {
