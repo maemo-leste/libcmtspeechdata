@@ -5,13 +5,6 @@
 SUBDIRS =		doc \
 			dummy-backend
 
-noinst_PROGRAMS = 	test_cmtspeech_msgs \
-			test_ring \
-			test_cmtspeech
-
-TESTS = 		test_cmtspeech_msgs \
-			test_ring
-
 EXTRA_DIST = 		cmtspeech_config.h.in \
 			libcmtspeechdata.ver
 
@@ -55,7 +48,13 @@ libcmtspeechdata_la_LDFLAGS =  -Wl,--version-script,$(srcdir)/libcmtspeechdata.v
 # test application sources
 # ------------------------
 
-bin_PROGRAMS =		send_cmtspeech_reset \
+TESTS = 		test_cmtspeech_msgs \
+			test_ring
+
+noinst_PROGRAMS = 	test_cmtspeech_msgs \
+			test_ring \
+			test_cmtspeech \
+			send_cmtspeech_reset \
 			cmtspeech_ramp_test
 
 noinst_HEADERS =	$(cmtspeechdata_common_inc) \
