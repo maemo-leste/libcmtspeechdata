@@ -106,6 +106,7 @@ dnl ------
 AC_CONFIG_FILES([
 Makefile
 cmtspeech_config.h
+libcmtspeechdata.pc
 doc/Makefile
 doc/doxygen.cfg
 dummy-backend/Makefile

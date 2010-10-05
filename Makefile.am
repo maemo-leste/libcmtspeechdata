@@ -84,6 +84,13 @@ cmtspeech_ramp_test_SOURCES = cmtspeech_ramp_test.c
 cmtspeech_ramp_test_LDADD = \
 			libcmtspeechdata.la
 
+# pkg-config
+# ----------
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libcmtspeechdata.pc
+$(pkgconfig_DATA): config.status
+
 # documentation rules
 # -------------------
 
