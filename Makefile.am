@@ -54,8 +54,8 @@ TESTS = 		test_cmtspeech_msgs \
 noinst_PROGRAMS = 	test_cmtspeech_msgs \
 			test_ring \
 			test_cmtspeech \
-			send_cmtspeech_reset \
-			cmtspeech_ramp_test
+			utils/send_cmtspeech_reset \
+			utils/cmtspeech_ramp_test
 
 noinst_HEADERS =	$(cmtspeechdata_common_inc) \
 			$(cmtspeech_data_kernel_inc)
@@ -76,12 +76,12 @@ test_ring_CFLAGS = 	@CHECK_CFLAGS@
 test_ring_LDADD = 	@CHECK_LIBS@ \
 			libcmtspeechdata.la
 
-send_cmtspeech_reset_SOURCES = send_cmtspeech_reset.c
-send_cmtspeech_reset_LDADD = \
+utils_send_cmtspeech_reset_SOURCES = utils/send_cmtspeech_reset.c
+utils_send_cmtspeech_reset_LDADD = \
 			libcmtspeechdata.la
 
-cmtspeech_ramp_test_SOURCES = cmtspeech_ramp_test.c
-cmtspeech_ramp_test_LDADD = \
+utils_cmtspeech_ramp_test_SOURCES = utils/cmtspeech_ramp_test.c
+utils_cmtspeech_ramp_test_LDADD = \
 			libcmtspeechdata.la
 
 # pkg-config
