@@ -54,6 +54,37 @@ DUMMYSRC <string>
     must be a raw 8/16bit, mono, PCM audio file (with little-endian byte 
     order).
 
+Utilities
+=========
+
+utils/cmtspeech_ofono_test.c
+----------------------------
+
+A test app that serves as a minimal example of an app using 
+libcmtspeechdata with oFono integration for call signaling. It
+listens for oFono call signaling on DBus system bus. When a call
+is established, it sets up the voice path with libcmtspeechdata,
+and loops downlink audio as-is to uplink. Remote party will get its
+uplink looped back.
+
+Limitations: as uplink timing is not corrected, so this may not work with 
+all modem modes.
+
+utils/cmtspeech_ramp_test.c
+---------------------------
+
+Test app to verify low-level communication is working towards
+the modem. Implementation is based on the libcmtspeechdata 
+cmtspeech_test_data_ramp_req() interface.
+
+Limitations: very few modems (and firmwares) support this interface.
+
+utils/send_cmtspeech_reset.c
+----------------------------
+
+Opens modem speech path with libcmtspeechdata and requests reset
+with cmtspeech_state_change_error().
+
 Further documentation
 =====================
 
