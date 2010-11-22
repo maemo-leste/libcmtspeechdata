@@ -20,6 +20,11 @@ nokiamodem_src =	cmtspeech_msgs.c \
 nokiamodem_kernel_inc = \
 			kernel-headers/linux/cs-protocol.h
 
+dummy_src = 		dummy-backend/dummy_common.c \
+			dummy-backend/cmtspeech_dummy.c \
+			cmtspeech_backend_common.c \
+			cmtspeech_msgs.c
+
 cmtspeechdata_common_src = \
 			sal_debug.c
 
@@ -36,8 +41,13 @@ cmtspeechdata_pub_inc_nodist = \
 			cmtspeech_config.h
 
 cmtspeechdata_backend_src=
+cmtspeechdata_backend_cflags=
 cmtspeechdata_backend_noinst_programs=
 cmtspeechdata_backend_tests=
+if USE_BACKEND_DUMMY
+cmtspeechdata_backend_src += $(dummy_src)
+cmtspeechdata_backend_cflags += "-I${top_srcdir}/dummy-backend/"
+endif
 if USE_BACKEND_NOKIAMODEM
 cmtspeechdata_backend_src += \
 			$(nokiamodem_src)
@@ -60,7 +70,8 @@ libcmtspeechdata_la_SOURCES = \
 			$(cmtspeechdata_pub_inc) \
 			$(cmtspeechdata_backend_src)
 
-libcmtspeechdata_la_CFLAGS = -prefer-pic
+libcmtspeechdata_la_CFLAGS = \
+			-prefer-pic $(cmtspeechdata_backend_cflags)
 libcmtspeechdata_la_LIBADD = -lrt
 libcmtspeechdata_la_LDFLAGS =  -Wl,--version-script,$(srcdir)/libcmtspeechdata.ver
 

@@ -94,6 +94,9 @@ AC_ARG_WITH([backend],
     [select which backend to use]),
     [
       case "$withval" in
+          dummy)
+          backend="dummy"
+	  ;;
         nokiamodem)
           backend="nokiamodem"
 	  ;;
@@ -108,6 +111,7 @@ AC_ARG_WITH([backend],
 if test "x$backend" = "x" ; then
   backend="$default_backend"
 fi
+AM_CONDITIONAL(USE_BACKEND_DUMMY, [test "x$backend" = "xdummy"])
 AM_CONDITIONAL(USE_BACKEND_NOKIAMODEM, [test "x$backend" = "xnokiamodem"])
 AM_CONDITIONAL(USE_BACKEND_NULL, [test "x$backend" = "xnull"])
 AC_MSG_RESULT([selecting default backend: $backend])
