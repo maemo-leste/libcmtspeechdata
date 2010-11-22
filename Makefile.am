@@ -13,13 +13,15 @@ EXTRA_DIST = 		cmtspeech_config.h.in \
 
 lib_LTLIBRARIES = 	libcmtspeechdata.la
 
-cmtspeechdata_common_src = \
-			cmtspeech_msgs.c \
-			cmtspeech_backend_common.c \
-			sal_debug.c
+nokiamodem_src =	cmtspeech_msgs.c \
+			cmtspeech_nokiamodem.c \
+			cmtspeech_backend_common.c
 
-cmtspeech_data_kernel_inc = \
+nokiamodem_kernel_inc = \
 			kernel-headers/linux/cs-protocol.h
+
+cmtspeechdata_common_src = \
+			sal_debug.c
 
 cmtspeechdata_common_inc = \
 			cmtspeech_backend_common.h \
@@ -33,6 +35,12 @@ cmtspeechdata_pub_inc = \
 cmtspeechdata_pub_inc_nodist = \
 			cmtspeech_config.h
 
+cmtspeechdata_backend_src=
+if USE_BACKEND_NOKIAMODEM
+cmtspeechdata_backend_src+= \
+			$(nokiamodem_src)
+endif
+
 include_HEADERS =	$(cmtspeechdata_pub_inc)
 
 nodist_include_HEADERS =$(cmtspeechdata_pub_inc_nodist)
@@ -40,7 +48,8 @@ nodist_include_HEADERS =$(cmtspeechdata_pub_inc_nodist)
 libcmtspeechdata_la_SOURCES = \
 			$(cmtspeechdata_common_src) \
 			$(cmtspeechdata_pub_inc) \
-			cmtspeech_nokiamodem.c
+			$(cmtspeechdata_backend_src)
+
 libcmtspeechdata_la_CFLAGS = -prefer-pic
 libcmtspeechdata_la_LIBADD = -lrt
 libcmtspeechdata_la_LDFLAGS =  -Wl,--version-script,$(srcdir)/libcmtspeechdata.ver
@@ -59,7 +68,7 @@ noinst_PROGRAMS = 	test_cmtspeech_msgs \
 			utils/cmtspeech_ofono_test
 
 noinst_HEADERS =	$(cmtspeechdata_common_inc) \
-			$(cmtspeech_data_kernel_inc)
+			$(nokiamodem_kernel_inc)
 
 test_cmtspeech_msgs_SOURCES = test_cmtspeech_msgs.c
 test_cmtspeech_msgs_CFLAGS = @CHECK_CFLAGS@

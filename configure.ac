@@ -86,6 +86,29 @@ PKG_CHECK_MODULES([DBUS], [dbus-1 >= 1.0])
 AC_SUBST(DBUS_CFLAGS)
 AC_SUBST(DBUS_LIBS)
 
+dnl note: this affects the main library build (the dummy
+dnl       library is built always under dummy-backend/ )
+default_backend="nokiamodem"
+AC_ARG_WITH([backend], 
+  AC_HELP_STRING([--with-backend=BACKEND],
+    [select which backend to use]),
+    [
+      case "$withval" in
+        nokiamodem)
+          backend="nokiamodem"
+	  AC_MSG_RESULT(selecting nokiamodem backend)
+	  ;;
+	*)
+	  AC_MSG_ERROR([unsupported backend: $withval])
+	  ;;
+      esac
+    ])
+if test "x$backend" = "x" ; then
+  backend="$default_backend"
+  AC_MSG_RESULT([selecting default backend: $backend])
+fi
+AM_CONDITIONAL(USE_BACKEND_NOKIAMODEM, [test "x$backend" = "xnokiamodem"])
+
 dnl checks for types
 dnl ----------------
 
