@@ -25,6 +25,12 @@
  *
  * Helper functions for CMT Speech Data library backend
  * implementations.
+ *
+ * Note: It is NOT mandatory for backends to use this file
+ *       at all. E.g. it can separately implement the public
+ *       cmtspeech.h interfaces provided by this file, i.e.
+ *       cmtspeech_init(), cmtspeech_set_wb_preference(),
+ *       cmtspeech_is_active() and so forth.
  */
 
 #include <assert.h>
