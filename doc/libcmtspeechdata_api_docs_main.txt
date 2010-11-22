@@ -76,6 +76,11 @@ Nokia modems (e.g. Maemo5 / Nokia N900). See notes in
 the libcmtspeechdata README-devel.txt file in section 
 "Internals: Resource allocation in Nokia Modem backend".
 
+@subsection sect_backend_null Null
+A null implementaton of library backend. Provides no functinality,
+but provides an example how to integrate new modem backends
+to the library.
+
 @section sect_instance_management Instance Management
 
 Before using any other library functions, application 

@@ -36,9 +36,19 @@ cmtspeechdata_pub_inc_nodist = \
 			cmtspeech_config.h
 
 cmtspeechdata_backend_src=
+cmtspeechdata_backend_noinst_programs=
+cmtspeechdata_backend_tests=
 if USE_BACKEND_NOKIAMODEM
-cmtspeechdata_backend_src+= \
+cmtspeechdata_backend_src += \
 			$(nokiamodem_src)
+cmtspeechdata_backend_noinst_programs += \
+			test_cmtspeech_msgs
+cmtspeechdata_backend_tests += \
+			test_cmtspeech_msgs
+endif
+if USE_BACKEND_NULL
+cmtspeechdata_backend_src += \
+			cmtspeech_null.c
 endif
 
 include_HEADERS =	$(cmtspeechdata_pub_inc)
@@ -57,15 +67,15 @@ libcmtspeechdata_la_LDFLAGS =  -Wl,--version-script,$(srcdir)/libcmtspeechdata.v
 # test application sources
 # ------------------------
 
-TESTS = 		test_cmtspeech_msgs \
-			test_ring
+TESTS = 		test_ring \
+			$(cmtspeechdata_backend_noinst_programs)
 
-noinst_PROGRAMS = 	test_cmtspeech_msgs \
-			test_ring \
+noinst_PROGRAMS = 	test_ring \
 			test_cmtspeech \
 			utils/send_cmtspeech_reset \
 			utils/cmtspeech_ramp_test \
-			utils/cmtspeech_ofono_test
+			utils/cmtspeech_ofono_test \
+			$(cmtspeechdata_backend_noinst_programs)
 
 noinst_HEADERS =	$(cmtspeechdata_common_inc) \
 			$(nokiamodem_kernel_inc)

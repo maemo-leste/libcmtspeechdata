@@ -39,9 +39,9 @@ dnl -------------------
 AC_MSG_CHECKING([whether to enable asserts and other debug facilities])
 AC_ARG_ENABLE([extra-debug], 
               AC_HELP_STRING([--disable-extra-debug], [Disable asserts and debug traces]),
-              [AC_MSG_RESULT([no])
-               AC_DEFINE(NDEBUG, 1, [Define to 1 if debug facilities should be disabled])],
-              [AC_MSG_RESULT([yes])])
+              AC_MSG_RESULT([no])
+               AC_DEFINE(NDEBUG, 1, [Define to 1 if debug facilities should be disabled]),
+              AC_MSG_RESULT([yes]))
 
 dnl check for doxygen
 dnl -----------------
@@ -96,7 +96,9 @@ AC_ARG_WITH([backend],
       case "$withval" in
         nokiamodem)
           backend="nokiamodem"
-	  AC_MSG_RESULT(selecting nokiamodem backend)
+	  ;;
+        null)
+          backend="null"
 	  ;;
 	*)
 	  AC_MSG_ERROR([unsupported backend: $withval])
@@ -105,9 +107,10 @@ AC_ARG_WITH([backend],
     ])
 if test "x$backend" = "x" ; then
   backend="$default_backend"
-  AC_MSG_RESULT([selecting default backend: $backend])
 fi
 AM_CONDITIONAL(USE_BACKEND_NOKIAMODEM, [test "x$backend" = "xnokiamodem"])
+AM_CONDITIONAL(USE_BACKEND_NULL, [test "x$backend" = "xnull"])
+AC_MSG_RESULT([selecting default backend: $backend])
 
 dnl checks for types
 dnl ----------------
