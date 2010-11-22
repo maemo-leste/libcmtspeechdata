@@ -2,9 +2,7 @@
 # Contact: Kai Vehmanen 
 # Licensed under LGPL. See file COPYING.
 
-EXTRA_DIST = 		dummy_cmt.c
-
-INCLUDES =		-I${top_srcdir}
+INCLUDES =		-I${top_srcdir} -I$(top_builddir)
 
 lib_LTLIBRARIES = 	libcmtspeechdata.la
 
