@@ -116,6 +116,14 @@ AM_CONDITIONAL(USE_BACKEND_NOKIAMODEM, [test "x$backend" = "xnokiamodem"])
 AM_CONDITIONAL(USE_BACKEND_NULL, [test "x$backend" = "xnull"])
 AC_MSG_RESULT([selecting default backend: $backend])
 
+AC_ARG_ENABLE(nokiamodem-vdd2lock, 
+  AC_HELP_STRING([--enable-nokiamodem-vdd2lock],
+    [nokiamodem: Utilize Maemo5 kernel interface for memory/vdd2 locking]),
+  nokiamodem_vdd2lock=$enableval,nokiamodem_vdd2lock=no)
+if test "x$nokiamodem_vdd2lock" = "xyes" ; then
+  AC_DEFINE(NOKIAMODEM_VDD2LOCK, 1, [Define to 1 if debug facilities should be disabled])
+fi
+
 dnl checks for types
 dnl ----------------
 

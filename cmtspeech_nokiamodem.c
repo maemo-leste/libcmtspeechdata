@@ -83,11 +83,14 @@
 #define SHARED_MEMORY_AREA_PAGE 4096
 #define MAX_UL_ERRORS_PAUSE     5  /* pause UL after this many errors */
 
-  /* reference:
+#if NOKIAMODEM_VDD2LOCK
+  /* maemo5-specific kernel interface for locking memory+ssi bus speed
+   * reference:
    * - linux/arch/arm/plat-omap/include/mach/omap34xx.h */
 #define PM_VDD2_LOCK_TO_OPP3   3
 #define PM_VDD2_UNLOCK         0
 #define PM_VDD2_LOCK_INTERFACE "/sys/power/vdd2_lock"
+#endif
 
 /* support use of 'swapped little endian' sample layout
  * for transfering speech data frames */
@@ -224,6 +227,7 @@ static int priv_write(cmtspeech_nokiamodem_t *priv, cmtspeech_cmd_t msg)
   return cmtspeech_bc_write_command(&priv->bcstate, priv, msg, priv->d.fd);
 }
 
+#if NOKIAMODEM_VDD2LOCK
 /**
  * Lock/unlocks system resources so that no changes in DVFS mods
  * that would impact SSI driver clocking will be initiated.
@@ -248,6 +252,7 @@ static void priv_set_ssi_lock(cmtspeech_nokiamodem_t *priv, bool enabled)
     TRACE_IO(DEBUG_PREFIX "Unable to lock VDD2, dev %s ('%s').", PM_VDD2_LOCK_INTERFACE, strerror(errno));
   }
 }
+#endif
 
 /**
  * Allocates SSI wakeline from the driver.
@@ -269,10 +274,11 @@ static int priv_acquire_wakeline(cmtspeech_nokiamodem_t *priv, int id)
     res = ioctl (priv->d.fd, CS_SET_WAKELINE, &status);
     TRACE_IO(DEBUG_PREFIX "Toggled SSI wakeline to %u by id %02x (res %d).", status, id, res);
 
+#if NOKIAMODEM_VDD2LOCK
     /* step: lock VDD2 whenever modem needs to be able to send
      *       messages towards us */
     priv_set_ssi_lock(priv, true);
-
+#endif
   }
   priv->d.wakeline_users |= id;
   return res;
@@ -297,9 +303,11 @@ static int priv_release_wakeline(cmtspeech_nokiamodem_t *priv, int id)
       res = ioctl (priv->d.fd, CS_SET_WAKELINE, &status);
       TRACE_IO(DEBUG_PREFIX "Toggled SSI wakeline to %u by id %02x (res %d).", status, id, res);
 
+#if NOKIAMODEM_VDD2LOCK
       /* step: unlock VDD2 whenever we are sure modem no longer needs
        *       needs to send messages towards us */
       priv_set_ssi_lock(priv, false);
+#endif
     }
   }
   return res;
@@ -312,10 +320,12 @@ static void priv_reset_wakeline_state(cmtspeech_nokiamodem_t *priv)
 
   TRACE_IO(DEBUG_PREFIX "Reseting SSI wakeline state (user mask %x at reset).", priv->d.wakeline_users);
 
+#if NOKIAMODEM_VDD2LOCK
   /* step: make sure VDD2 is unlocked */
   if (priv->d.wakeline_users != 0) {
     priv_set_ssi_lock(priv, false);
   }
+#endif
 
   res = ioctl (priv->d.fd, CS_SET_WAKELINE, &status);
   SOFT_ASSERT(res == 0);
