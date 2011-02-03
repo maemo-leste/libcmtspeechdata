@@ -120,7 +120,7 @@ int cmtspeech_msg_encode_ul_data_header(uint8_t *buf, int len, uint16_t frame_co
 
 /**
  * Decodes CMT speech message in 'buf'. Results are stored to locations
- * given as arguments. If an argument is NULL, it is ignored.
+ * given as arguments.
  *
  * @return 0 on success, non-zero otherwise
  */
@@ -129,14 +129,10 @@ int cmtspeech_msg_decode_ul_data_header(uint8_t *buf, int len, uint16_t *frame_c
   if (len < 4)
     return -1;
 
-  if (frame_counter)
-    *frame_counter = buf[BYTE0] << 8 | buf[BYTE1];
-  if (data_length)
-    *data_length = (buf[BYTE3] >> 4) & 0x3;
-  if (sample_rate)
-    *sample_rate = (buf[BYTE3] >> 2) & 0x3;
-  if (data_type)
-    *data_type = buf[BYTE3] & 0x3;
+  *frame_counter = buf[BYTE0] << 8 | buf[BYTE1];
+  *data_length = (buf[BYTE3] >> 4) & 0x3;
+  *sample_rate = (buf[BYTE3] >> 2) & 0x3;
+  *data_type = buf[BYTE3] & 0x3;
 
   return 0;
 }
@@ -182,7 +178,7 @@ int cmtspeech_msg_encode_dl_data_header_v5(uint8_t *buf, int len, uint16_t frame
 
 /**
  * Decodes CMT speech message in 'buf'. Results are stored to locations
- * given as arguments. If an argument is NULL, it is ignored.
+ * given as arguments.
  *
  * @return 0 on success, non-zero otherwise
  */
@@ -201,7 +197,7 @@ int cmtspeech_msg_decode_dl_data_header(uint8_t *buf, int len, uint16_t *frame_c
 
 /**
  * Decodes CMT speech message in 'buf'. Results are stored to locations
- * given as arguments. If an argument is NULL, it is ignored.
+ * given as arguments.
  *
  * Variant of cmtspeech_msg_decode_dl_data_header() for ABI
  * compatibility.
@@ -214,20 +210,14 @@ int cmtspeech_msg_decode_dl_data_header_v5(uint8_t *buf, int len, uint16_t *fram
   if (len < 4)
     return -1;
 
-  if (frame_counter)
-    *frame_counter = buf[BYTE0] << 8 | buf[BYTE1];
-  if (spc_flags)
-    *spc_flags =
-      ((buf[BYTE2] & 0x1f) << 2) |
-      ((buf[BYTE3] >> 6) & 0x3);
-  if (data_length)
-    *data_length = (buf[BYTE3] >> 4) & 0x3;
-  if (sample_rate)
-    *sample_rate = (buf[BYTE3] >> 2) & 0x3;
-  if (codec_sample_rate)
-    *codec_sample_rate = (buf[BYTE2] >> 5) & 0x3;
-  if (data_type)
-    *data_type = buf[BYTE3] & 0x3;
+  *frame_counter = buf[BYTE0] << 8 | buf[BYTE1];
+  *spc_flags =
+    ((buf[BYTE2] & 0x1f) << 2) |
+    ((buf[BYTE3] >> 6) & 0x3);
+  *data_length = (buf[BYTE3] >> 4) & 0x3;
+  *sample_rate = (buf[BYTE3] >> 2) & 0x3;
+  *codec_sample_rate = (buf[BYTE2] >> 5) & 0x3;
+  *data_type = buf[BYTE3] & 0x3;
 
   return 0;
 }
