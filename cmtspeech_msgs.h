@@ -133,6 +133,9 @@ int cmtspeech_msg_decode_ul_data_header(uint8_t *buf, int len, uint16_t *frame_c
 int cmtspeech_msg_encode_dl_data_header(uint8_t *buf, int len, uint16_t frame_counter, uint8_t spc_flags, uint8_t data_length, uint8_t sample_rate, uint8_t data_type);
 int cmtspeech_msg_decode_dl_data_header(uint8_t *buf, int len, uint16_t *frame_counter, uint8_t *spc_flags, uint8_t *data_length, uint8_t *sample_rate, uint8_t *data_type);
 
+int cmtspeech_msg_decode_dl_data_header_v5(uint8_t *buf, int len, uint16_t *frame_counter, uint8_t *spc_flags, uint8_t *data_length, uint8_t *sample_rate, uint8_t *codec_sample_rate, uint8_t *data_type);
+int cmtspeech_msg_encode_dl_data_header_v5(uint8_t *buf, int len, uint16_t frame_counter, uint8_t spc_flags, uint8_t data_length, uint8_t sample_rate, uint8_t codec_sample_rate, uint8_t data_type);
+
 /* Function prototypes / control messages */
 /* ---------------------------------------*/
 

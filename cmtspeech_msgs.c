@@ -147,12 +147,30 @@ int cmtspeech_msg_decode_ul_data_header(uint8_t *buf, int len, uint16_t *frame_c
  */
 int cmtspeech_msg_encode_dl_data_header(uint8_t *buf, int len, uint16_t frame_counter, uint8_t spc_flags, uint8_t data_length, uint8_t sample_rate, uint8_t data_type)
 {
+  return cmtspeech_msg_encode_dl_data_header_v5(buf,
+						len,
+						frame_counter,
+						spc_flags,
+						data_length,
+						sample_rate,
+						CMTSPEECH_SAMPLE_RATE_NONE,
+						data_type);
+}
+
+/**
+ * Encodes an DL_SPEECH_DATA_FRAME message to buffer pointed
+ * by 'buf'. Returns size of encoded data (in octets).
+ */
+int cmtspeech_msg_encode_dl_data_header_v5(uint8_t *buf, int len, uint16_t frame_counter, uint8_t spc_flags, uint8_t data_length, uint8_t sample_rate, uint8_t codec_sample_rate, uint8_t data_type)
+{
   if (len < 4)
     return -1;
 
   buf[BYTE0] = frame_counter >> 8;
   buf[BYTE1] = frame_counter;
-  buf[BYTE2] = (spc_flags & 0x1f) >> 2;
+  buf[BYTE2] =
+    (codec_sample_rate & 0x3) << 7 |
+    (spc_flags & 0x1f) >> 2;
   buf[BYTE3] =
     (spc_flags & 0x3) << 6 |
     (data_length & 0x3) << 4 |
@@ -170,6 +188,29 @@ int cmtspeech_msg_encode_dl_data_header(uint8_t *buf, int len, uint16_t frame_co
  */
 int cmtspeech_msg_decode_dl_data_header(uint8_t *buf, int len, uint16_t *frame_counter, uint8_t *spc_flags, uint8_t *data_length, uint8_t *sample_rate, uint8_t *data_type)
 {
+  uint8_t tmp;
+  return cmtspeech_msg_decode_dl_data_header_v5(buf,
+						len,
+						frame_counter,
+						spc_flags,
+						data_length,
+						sample_rate,
+						&tmp,
+						data_type);
+}
+
+/**
+ * Decodes CMT speech message in 'buf'. Results are stored to locations
+ * given as arguments. If an argument is NULL, it is ignored.
+ *
+ * Variant of cmtspeech_msg_decode_dl_data_header() for ABI
+ * compatibility.
+ *
+ * @return 0 on success, non-zero otherwise
+ */
+int cmtspeech_msg_decode_dl_data_header_v5(uint8_t *buf, int len, uint16_t *frame_counter, uint8_t *spc_flags, uint8_t *data_length, uint8_t *sample_rate, uint8_t *codec_sample_rate, uint8_t *data_type)
+{
+
   if (len < 4)
     return -1;
 
@@ -183,6 +224,8 @@ int cmtspeech_msg_decode_dl_data_header(uint8_t *buf, int len, uint16_t *frame_c
     *data_length = (buf[BYTE3] >> 4) & 0x3;
   if (sample_rate)
     *sample_rate = (buf[BYTE3] >> 2) & 0x3;
+  if (codec_sample_rate)
+    *codec_sample_rate = (buf[BYTE2] >> 5) & 0x3;
   if (data_type)
     *data_type = buf[BYTE3] & 0x3;
 

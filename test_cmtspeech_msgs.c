@@ -245,40 +245,65 @@ END_TEST
 START_TEST(test_dl_data_frame)
 {
   uint8_t buf[255] = { 0 };
-  uint16_t frame_counter = 65535;
-  uint8_t sbc_flags = 0;
-  uint8_t data_length = 255;
-  uint8_t sample_rate = 255;
-  uint8_t data_type = 255;
+  struct {
+    uint16_t frame_counter;
+    uint8_t sbc_flags;
+    uint8_t data_length;
+    uint8_t sample_rate;
+    uint8_t codec_sample_rate;
+    uint8_t data_type;
+  } p;
 
-  /* test encoding-decoding */  
-  cmtspeech_msg_encode_dl_data_header(buf, 255, 12345, CMTSPEECH_SPC_FLAGS_MUTE, CMTSPEECH_DATA_LENGTH_10MS, CMTSPEECH_SAMPLE_RATE_8KHZ, CMTSPEECH_DATA_TYPE_INVALID);
-  cmtspeech_msg_decode_dl_data_header(buf, 255, &frame_counter, &sbc_flags, &data_length, &sample_rate, &data_type);
-  fail_unless(frame_counter == 12345);
-  fail_unless(sbc_flags == CMTSPEECH_SPC_FLAGS_MUTE);
-  fail_unless(data_length == CMTSPEECH_DATA_LENGTH_10MS);
-  fail_unless(sample_rate == CMTSPEECH_SAMPLE_RATE_8KHZ);
-  fail_unless(data_type == CMTSPEECH_DATA_TYPE_INVALID);
+  memset(&p, 0xff, sizeof(p));
+
+  /* test encoding-decoding */
+  cmtspeech_msg_encode_dl_data_header(buf, sizeof(buf), 12345, CMTSPEECH_SPC_FLAGS_MUTE, CMTSPEECH_DATA_LENGTH_10MS, CMTSPEECH_SAMPLE_RATE_8KHZ, CMTSPEECH_DATA_TYPE_INVALID);
+  cmtspeech_msg_decode_dl_data_header(buf, 255, &p.frame_counter, &p.sbc_flags, &p.data_length, &p.sample_rate, &p.data_type);
+  fail_unless(p.frame_counter == 12345);
+  fail_unless(p.sbc_flags == CMTSPEECH_SPC_FLAGS_MUTE);
+  fail_unless(p.data_length == CMTSPEECH_DATA_LENGTH_10MS);
+  fail_unless(p.sample_rate == CMTSPEECH_SAMPLE_RATE_8KHZ);
+  fail_unless(p.data_type == CMTSPEECH_DATA_TYPE_INVALID);
+
+  cmtspeech_msg_encode_dl_data_header_v5(buf, sizeof(buf), 54321, CMTSPEECH_SPC_FLAGS_MUTE, CMTSPEECH_DATA_LENGTH_10MS, CMTSPEECH_SAMPLE_RATE_8KHZ, CMTSPEECH_SAMPLE_RATE_16KHZ, CMTSPEECH_DATA_TYPE_INVALID);
+  cmtspeech_msg_decode_dl_data_header_v5(buf, 255, &p.frame_counter, &p.sbc_flags, &p.data_length, &p.sample_rate, &p.codec_sample_rate, &p.data_type);
+  fail_unless(p.frame_counter == 54321);
+  fail_unless(p.sbc_flags == CMTSPEECH_SPC_FLAGS_MUTE);
+  fail_unless(p.data_length == CMTSPEECH_DATA_LENGTH_10MS);
+  fail_unless(p.sample_rate == CMTSPEECH_SAMPLE_RATE_8KHZ);
+  fail_unless(p.data_type == CMTSPEECH_DATA_TYPE_INVALID);
 
   /* test with a prefilled test vector */
-  /* params: frame counter = 0xabcd, SPC-attenuate, DataLength=20ms,
-       SR=16kHz, valid data */
+  /* params: frame counter = 0xabcd, SPC-bfi, DataLength=20ms,
+       SR=16kHz, CSR=16kHz, valid data */
   uint8_t testbuf[4];
   testbuf[BYTE0] = 0xab;
   testbuf[BYTE1] = 0xcd;
-  testbuf[BYTE2] = 0x10;
+  testbuf[BYTE2] = 0x50;
   testbuf[BYTE3] = 0xa9;
 
-  frame_counter = 65535; 
-  sbc_flags = data_length = sample_rate = data_type = 255;
-  cmtspeech_msg_decode_dl_data_header(testbuf, 4, &frame_counter, &sbc_flags, &data_length, &sample_rate, &data_type);
-  fail_unless(frame_counter == 0xabcd);
-  fail_unless(sbc_flags & CMTSPEECH_SPC_FLAGS_BFI);
-  fail_unless(sbc_flags & CMTSPEECH_SPC_FLAGS_DTX_USED);
-  fail_unless((sbc_flags & ~(CMTSPEECH_SPC_FLAGS_DTX_USED | CMTSPEECH_SPC_FLAGS_BFI)) == 0);
-  fail_unless(data_length == CMTSPEECH_DATA_LENGTH_20MS);
-  fail_unless(sample_rate == CMTSPEECH_SAMPLE_RATE_16KHZ);
-  fail_unless(data_type == CMTSPEECH_DATA_TYPE_INVALID);
+  memset(&p, 0xff, sizeof(p));
+
+  cmtspeech_msg_decode_dl_data_header(testbuf, 4, &p.frame_counter, &p.sbc_flags, &p.data_length, &p.sample_rate, &p.data_type);
+  fail_unless(p.frame_counter == 0xabcd);
+  fail_unless(p.sbc_flags & CMTSPEECH_SPC_FLAGS_BFI);
+  fail_unless(p.sbc_flags & CMTSPEECH_SPC_FLAGS_DTX_USED);
+  fail_unless(p.sbc_flags & CMTSPEECH_SPC_FLAGS_BFI);
+  fail_unless(p.data_length == CMTSPEECH_DATA_LENGTH_20MS);
+  fail_unless(p.sample_rate == CMTSPEECH_SAMPLE_RATE_16KHZ);
+  fail_unless(p.data_type == CMTSPEECH_DATA_TYPE_INVALID);
+
+  memset(&p, 0xff, sizeof(p));
+
+  cmtspeech_msg_decode_dl_data_header_v5(testbuf, 4, &p.frame_counter, &p.sbc_flags, &p.data_length, &p.sample_rate, &p.codec_sample_rate, &p.data_type);
+  fail_unless(p.frame_counter == 0xabcd);
+  fail_unless(p.sbc_flags & CMTSPEECH_SPC_FLAGS_BFI);
+  fail_unless(p.sbc_flags & CMTSPEECH_SPC_FLAGS_DTX_USED);
+  fail_unless((p.sbc_flags & ~(CMTSPEECH_SPC_FLAGS_DTX_USED | CMTSPEECH_SPC_FLAGS_BFI)) == 0);
+  fail_unless(p.data_length == CMTSPEECH_DATA_LENGTH_20MS);
+  fail_unless(p.sample_rate == CMTSPEECH_SAMPLE_RATE_16KHZ);
+  fail_unless(p.codec_sample_rate == CMTSPEECH_SAMPLE_RATE_16KHZ);
+  fail_unless(p.data_type == CMTSPEECH_DATA_TYPE_INVALID);
 }
 END_TEST
 
