@@ -257,10 +257,10 @@ START_TEST(test_dl_data_frame)
   memset(&p, 0xff, sizeof(p));
 
   /* test encoding-decoding */
-  cmtspeech_msg_encode_dl_data_header(buf, sizeof(buf), 12345, CMTSPEECH_SPC_FLAGS_MUTE, CMTSPEECH_DATA_LENGTH_10MS, CMTSPEECH_SAMPLE_RATE_8KHZ, CMTSPEECH_DATA_TYPE_INVALID);
+  cmtspeech_msg_encode_dl_data_header(buf, sizeof(buf), 12345, CMTSPEECH_SPC_FLAGS_DTX_USED, CMTSPEECH_DATA_LENGTH_10MS, CMTSPEECH_SAMPLE_RATE_8KHZ, CMTSPEECH_DATA_TYPE_INVALID);
   cmtspeech_msg_decode_dl_data_header(buf, 255, &p.frame_counter, &p.sbc_flags, &p.data_length, &p.sample_rate, &p.data_type);
   fail_unless(p.frame_counter == 12345);
-  fail_unless(p.sbc_flags == CMTSPEECH_SPC_FLAGS_MUTE);
+  fail_unless(p.sbc_flags == CMTSPEECH_SPC_FLAGS_DTX_USED);
   fail_unless(p.data_length == CMTSPEECH_DATA_LENGTH_10MS);
   fail_unless(p.sample_rate == CMTSPEECH_SAMPLE_RATE_8KHZ);
   fail_unless(p.data_type == CMTSPEECH_DATA_TYPE_INVALID);
