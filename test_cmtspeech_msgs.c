@@ -1,7 +1,7 @@
 /*
  * This file is part of libcmtspeechdata.
  *
- * Copyright (C) 2008,2009,2010 Nokia Corporation.
+ * Copyright (C) 2008,2009,2010,2011 Nokia Corporation.
  *
  * Contact: Kai Vehmanen <kai.vehmanen@nokia.com>
  *
@@ -35,12 +35,12 @@
 
 #if CMTSPEECH_BIG_ENDIAN_CMDS
 #define BYTE0 0  /* MSB byte */
-#define BYTE1 1  
+#define BYTE1 1
 #define BYTE2 2
 #define BYTE3 3  /* LSB byte */
 #elif CMTSPEECH_LITTLE_ENDIAN_CMDS
 #define BYTE0 3  /* MSB byte */
-#define BYTE1 2  
+#define BYTE1 2
 #define BYTE2 1
 #define BYTE3 0  /* LSB byte */
 #else
@@ -56,7 +56,7 @@ START_TEST(test_speech_codec_req)
   uint8_t cellular_info = CMTSPEECH_CELLULAR_INFO_GSM;
   uint8_t sample_rate = CMTSPEECH_SAMPLE_RATE_16KHZ;
   uint8_t data_format = CMTSPEECH_DATA_FORMAT_S16LINPCM;
-  
+
   /* test encoding-decoding */
   cmtspeech_msg_encode_speech_config_req(&cmd, speech_data_stream, call_user_connecting_ind, codec_info, cellular_info, sample_rate, data_format);
 
@@ -87,10 +87,10 @@ END_TEST
 START_TEST(test_timing_config_ntf)
 {
   cmtspeech_cmd_t cmd;
-  uint16_t msec = 500; 
+  uint16_t msec = 500;
   uint16_t usec = 999;
 
-  /* test encoding-decoding */  
+  /* test encoding-decoding */
   cmtspeech_msg_encode_timing_config_ntf(&cmd, msec, usec);
   fail_unless(cmtspeech_msg_get_type(cmd) == CMTSPEECH_TIMING_CONFIG_NTF);
   fail_unless(cmtspeech_msg_get_domain(cmd) == CMTSPEECH_DOMAIN_CONTROL);
@@ -129,12 +129,12 @@ START_TEST(test_ssi_config_req)
   uint8_t version = 2;
   uint8_t state = 1;
 
-  /* test encoding-decoding */  
+  /* test encoding-decoding */
   cmtspeech_msg_encode_ssi_config_req(&cmd, layout, version, state);
   fail_unless(cmtspeech_msg_get_type(cmd) == CMTSPEECH_SSI_CONFIG_REQ);
   fail_unless(cmtspeech_msg_get_domain(cmd) == CMTSPEECH_DOMAIN_CONTROL);
 
-  state = 0; 
+  state = 0;
   version = 0;
   layout = 0;
   fail_unless(cmtspeech_msg_decode_ssi_config_req(cmd, &layout, &version, &state) == 0);
@@ -159,12 +159,12 @@ START_TEST(test_ssi_config_resp)
   uint8_t layout = CMTSPEECH_SAMPLE_LAYOUT_SWAPPED_LE;
   uint8_t state = 2;
 
-  /* test encoding-decoding */  
+  /* test encoding-decoding */
   cmtspeech_msg_encode_ssi_config_resp(&cmd, layout, state);
   fail_unless(cmtspeech_msg_get_type(cmd) == CMTSPEECH_SSI_CONFIG_RESP);
   fail_unless(cmtspeech_msg_get_domain(cmd) == CMTSPEECH_DOMAIN_CONTROL);
 
-  state = 0; 
+  state = 0;
   layout = 0;
   fail_unless(cmtspeech_msg_decode_ssi_config_resp(cmd, &layout, &state) == 0);
   fail_unless(state == 2);
@@ -176,7 +176,7 @@ START_TEST(test_reset_conn_resp)
 {
   cmtspeech_cmd_t cmd;
 
-  /* test encoding-decoding */  
+  /* test encoding-decoding */
   cmtspeech_msg_encode_reset_conn_resp(&cmd);
   fail_unless(cmtspeech_msg_get_type(cmd) == CMTSPEECH_RESET_CONN_RESP);
   fail_unless(cmtspeech_msg_get_domain(cmd) == CMTSPEECH_DOMAIN_CONTROL);
@@ -194,7 +194,7 @@ START_TEST(test_reset_conn_req)
 {
   cmtspeech_cmd_t cmd;
 
-  /* test encoding-decoding */  
+  /* test encoding-decoding */
   cmtspeech_msg_encode_reset_conn_req(&cmd);
   fail_unless(cmtspeech_msg_get_type(cmd) == CMTSPEECH_RESET_CONN_REQ);
   fail_unless(cmtspeech_msg_get_domain(cmd) == CMTSPEECH_DOMAIN_CONTROL);
@@ -216,7 +216,7 @@ START_TEST(test_ul_data_frame)
   uint8_t sample_rate = 255;
   uint8_t data_type = 255;
 
-  /* test encoding-decoding */  
+  /* test encoding-decoding */
   cmtspeech_msg_encode_ul_data_header(buf, 255, 12345, CMTSPEECH_DATA_LENGTH_10MS, CMTSPEECH_SAMPLE_RATE_8KHZ, CMTSPEECH_DATA_TYPE_INVALID);
   cmtspeech_msg_decode_ul_data_header(buf, 255, &frame_counter, &data_length, &sample_rate, &data_type);
   fail_unless(frame_counter == 12345);
@@ -232,7 +232,7 @@ START_TEST(test_ul_data_frame)
   testbuf[BYTE2] = 0x00;
   testbuf[BYTE3] = 0x2a;
 
-  frame_counter = 65535; 
+  frame_counter = 65535;
   data_length = sample_rate = data_type = 255;
   cmtspeech_msg_decode_ul_data_header(testbuf, 4, &frame_counter, &data_length, &sample_rate, &data_type);
   fail_unless(frame_counter == 0xabcd);
@@ -310,7 +310,7 @@ END_TEST
 Suite *ssi_msgs_suite(void)
 {
   Suite *suite = suite_create("ssi_msgs");
-  
+
   TCase *control = tcase_create("control");
   TCase *data = tcase_create("data");
 
