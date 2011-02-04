@@ -69,7 +69,9 @@ libcmtspeechdata_la_SOURCES = \
 libcmtspeechdata_la_CFLAGS = \
 			-prefer-pic $(backend_cflags)
 libcmtspeechdata_la_LIBADD = -lrt
-libcmtspeechdata_la_LDFLAGS =  -Wl,--version-script,$(srcdir)/libcmtspeechdata.ver
+libcmtspeechdata_la_LDFLAGS = \
+			-Wl,--version-script,$(srcdir)/libcmtspeechdata.ver \
+			-version-info 1:0:1
 
 # test application sources
 # ------------------------

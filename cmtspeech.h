@@ -443,6 +443,36 @@ int cmtspeech_dl_buffer_acquire(cmtspeech_t *context, cmtspeech_buffer_t **buf);
 int cmtspeech_dl_buffer_release(cmtspeech_t *context, cmtspeech_buffer_t *buf);
 
 /**
+ * Returns the codec sample rate for the buffer.
+ *
+ * The value reflects the original codec sample rate as it was
+ * received from, or will be sent to, the radio interface. The value
+ * may be different from value of cmtspeech_buffer_sample_rate(),
+ * e.g. in the case where modem does decoding and resamples
+ * the resulting PCM buffers.
+ *
+ * @return
+ *   CMTSPEECH_SAMPLE_RATE_NONE: if information not available,
+ *   CMTSPEECH_SAMPLE_RATE_8KHZ: 8kHz (narrow band),
+ *   CMTSPEECH_SAMPLE_RATE_16KHZ: 16kHz (wide band)
+ *
+ * @see cmtspeech_dl_sample_rate().
+ */
+int cmtspeech_buffer_codec_sample_rate(cmtspeech_buffer_t *context);
+
+/**
+ * Returns the sample rate for the buffer.
+ *
+ * @return
+ *   CMTSPEECH_SAMPLE_RATE_NONE: if information not available,
+ *   CMTSPEECH_SAMPLE_RATE_8KHZ: 8kHz (narrow band),
+ *   CMTSPEECH_SAMPLE_RATE_16KHZ: 16kHz (wide band)
+ *
+ * @see cmtspeech_dl_codec_sample_rate().
+ */
+int cmtspeech_buffer_sample_rate(cmtspeech_buffer_t *context);
+
+/**
  * Returns the buffer descriptor pointing to raw downlink
  * frame at 'data'.
  *
@@ -451,12 +481,12 @@ int cmtspeech_dl_buffer_release(cmtspeech_t *context, cmtspeech_buffer_t *buf);
 cmtspeech_buffer_t *cmtspeech_dl_buffer_find_with_data(cmtspeech_t *context, uint8_t *data);
 
 /**
- * Returns the buffer descriptor pointing to downlink frame
- * payload at 'payload'.
+ * Returns the buffer descriptor pointing to raw downlink
+ * frame at 'data'.
  *
  * @see cmtspeech_dl_buffer_release().
  */
-cmtspeech_buffer_t *cmtspeech_dl_buffer_find_with_payload(cmtspeech_t *context, uint8_t *payload);
+cmtspeech_buffer_t *cmtspeech_dl_buffer_find_with_data(cmtspeech_t *context, uint8_t *data);
 
 /* Interfaces: Implementation version information
  * ----------------------------------------------------  */

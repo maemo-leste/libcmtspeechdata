@@ -2,6 +2,8 @@
 global: 
 	cmtspeech_backend_message;
 	cmtspeech_backend_name;
+	cmtspeech_buffer_codec_sample_rate;
+	cmtspeech_buffer_sample_rate;
 	cmtspeech_check_pending;
 	cmtspeech_close;
 	cmtspeech_descriptor;
