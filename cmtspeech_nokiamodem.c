@@ -1422,7 +1422,7 @@ int cmtspeech_dl_buffer_acquire(cmtspeech_t *context, cmtspeech_buffer_t **buf)
   cmtspeech_nokiamodem_t *priv = (cmtspeech_nokiamodem_t*)context;
   nokiamodem_buffer_desc_t *desc;
   uint16_t frame_counter;
-  uint8_t spc_flags, data_length, data_type, sample_rate;
+  uint8_t spc_flags, data_length, data_type, sample_rate, codec_sample_rate;
   int res;
   int slot;
 
@@ -1457,7 +1457,7 @@ int cmtspeech_dl_buffer_acquire(cmtspeech_t *context, cmtspeech_buffer_t **buf)
 
   SOFT_ASSERT(desc == &priv->dlbufdesc[slot]);
 
-  res = cmtspeech_msg_decode_dl_data_header(desc->bd.data, CMTSPEECH_DATA_HEADER_LEN, &frame_counter, &spc_flags, &data_length, &sample_rate, &data_type);
+  res = cmtspeech_msg_decode_dl_data_header_v5(desc->bd.data, CMTSPEECH_DATA_HEADER_LEN, &frame_counter, &spc_flags, &data_length, &sample_rate, &codec_sample_rate, &data_type);
   SOFT_ASSERT(res == 0);
 
   TRACE_DEBUG(DEBUG_PREFIX "DL frame received (hw %d, appl %d, slot %u, %u bytes, frame-counter %u, type %d):", priv->rx_ptr_hw, priv->rx_ptr_appl, slot, priv->slot_size, frame_counter, data_type);
@@ -1465,6 +1465,8 @@ int cmtspeech_dl_buffer_acquire(cmtspeech_t *context, cmtspeech_buffer_t **buf)
   /* note: decode frame header and fill dlbufdesc fields appropriately */
   desc->bd.frame_flags = CMTSPEECH_DATA_TYPE_VALID;
   desc->bd.spc_flags = spc_flags;
+  /* note: reserved bits 0:4 are used for sampling rate info */
+  desc->bd.reserved[0] = codec_sample_rate | (sample_rate << 2);
 
   desc->flags |= BUF_LOCKED;
   *buf = &(desc->bd);
@@ -1728,6 +1730,18 @@ int cmtspeech_backend_message(cmtspeech_t *self, int type, int args, ...)
 {
   /* no-op */
   return -1;
+}
+
+int cmtspeech_buffer_codec_sample_rate(cmtspeech_buffer_t *context)
+{
+  /* note: bits 0:1 of the first reserved slot are used for sample rate */
+  return context->reserved[0] & 3;
+}
+
+int cmtspeech_buffer_sample_rate(cmtspeech_buffer_t *context)
+{
+  /* note: bits 2:3 of the first reserved slot are used for sample rate */
+  return (context->reserved[0] >> 2) & 3;
 }
 
 cmtspeech_bc_state_t *cmtspeech_bc_state_object(cmtspeech_t *context)
