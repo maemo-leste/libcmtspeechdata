@@ -1,4 +1,4 @@
-dnl Copyright (C) 2008,2010 Nokia Corporation
+dnl Copyright (C) 2008,2010,2011 Nokia Corporation
 dnl Contact: Kai Vehmanen <kai.vehmanen@nokia.com>
 dnl Licensed under LGPL. See file COPYING.
 
@@ -10,7 +10,7 @@ AC_PREREQ(2.57)
 dnl information on the package
 dnl ---------------------------
 
-AC_INIT([libcmtspeechdata], [2.0.8+dev])
+AC_INIT([libcmtspeechdata], [2.1.0])
 AC_CONFIG_SRCDIR([cmtspeech.h])
 AM_INIT_AUTOMAKE([foreign])
 AM_MAINTAINER_MODE
