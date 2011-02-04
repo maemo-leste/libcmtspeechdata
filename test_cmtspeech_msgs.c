@@ -29,6 +29,7 @@
 #include <check.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "cmtspeech_msgs.h"
 #include "cmtspeech.h"
