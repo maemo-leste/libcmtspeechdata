@@ -799,6 +799,16 @@ int cmtspeech_backend_message(cmtspeech_t *self, int type, int args, ...)
   return -1;
 }
 
+int cmtspeech_buffer_codec_sample_rate(cmtspeech_buffer_t *context)
+{
+  return CMTSPEECH_SAMPLE_RATE_NONE;
+}
+
+int cmtspeech_buffer_sample_rate(cmtspeech_buffer_t *context)
+{
+  return CMTSPEECH_SAMPLE_RATE_NONE;
+}
+
 cmtspeech_bc_state_t *cmtspeech_bc_state_object(cmtspeech_t *context)
 {
   cmtspeech_dummy_t *priv = (cmtspeech_dummy_t*)context;

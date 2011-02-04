@@ -36,4 +36,6 @@ nodist_libcmtspeechdata_la_SOURCES = \
 			$(dummy_cmtspeechdata_pub_inc_nodist)
 libcmtspeechdata_la_CFLAGS = -prefer-pic
 libcmtspeechdata_la_LIBADD = -lrt
-libcmtspeechdata_la_LDFLAGS =  -Wl,--version-script,$(top_srcdir)/libcmtspeechdata.ver
+libcmtspeechdata_la_LDFLAGS = \
+			-Wl,--version-script,$(top_srcdir)/libcmtspeechdata.ver \
+			-version-info 1:0:1
