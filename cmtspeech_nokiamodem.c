@@ -82,6 +82,7 @@
 #define DL_SLOTS                3
 #define SHARED_MEMORY_AREA_PAGE 4096
 #define MAX_UL_ERRORS_PAUSE     5  /* pause UL after this many errors */
+#define CLOCK_WAKE_UP_DELAY_NS  500000
 
 #if NOKIAMODEM_VDD2LOCK
   /* maemo5-specific kernel interface for locking memory+ssi bus speed
@@ -279,6 +280,14 @@ static int priv_acquire_wakeline(cmtspeech_nokiamodem_t *priv, int id)
      *       messages towards us */
     priv_set_ssi_lock(priv, true);
 #endif
+
+    /* step: this is ugly, but as the hw interface does not provide means to get
+     *       an indication when modem is ready, a small delay is
+     *       needed after raising the wakeline */
+    struct timespec tv;
+    tv.tv_sec = 0;
+    tv.tv_nsec = CLOCK_WAKE_UP_DELAY_NS;
+    nanosleep(&tv, NULL);
   }
   priv->d.wakeline_users |= id;
   return res;
