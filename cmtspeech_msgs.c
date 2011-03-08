@@ -166,7 +166,7 @@ int cmtspeech_msg_encode_dl_data_header_v5(uint8_t *buf, int len, uint16_t frame
   buf[BYTE1] = frame_counter;
   buf[BYTE2] =
     (codec_sample_rate & 0x3) << 7 |
-    (spc_flags >> 2) & 0x1f;
+    ((spc_flags >> 2) & 0x1f);
   buf[BYTE3] =
     (spc_flags & 0x3) << 6 |
     (data_length & 0x3) << 4 |
