@@ -80,7 +80,7 @@ static dbus_bool_t priv_add_cb(DBusWatch *watch, void *data)
   ctx->dbus_fd = fd;
   ctx->dbus_watch = watch;
 
-  DEBUG(printf(PREFIX "priv_add_cb: socket %d, watch %p (tracking %p).\n",
+  DEBUG(fprintf(stderr, PREFIX "priv_add_cb: socket %d, watch %p (tracking %p).\n",
 	       fd, watch, ctx->dbus_watch));
 
   return TRUE;
@@ -90,7 +90,7 @@ static void priv_remove_cb(DBusWatch *watch, void *data)
 {
   struct test_ctx *ctx = (struct test_ctx*)data;
 
-  DEBUG(printf(PREFIX "priv_remove_cb: (%p).\n", (void*)watch));
+  DEBUG(fprintf(stderr, PREFIX "priv_remove_cb: (%p).\n", (void*)watch));
 
   if (ctx->dbus_watch == watch) {
     ctx->dbus_watch = NULL;
@@ -104,7 +104,7 @@ static void priv_toggled_cb(DBusWatch *watch, void *data)
   dbus_bool_t enabled =
     dbus_watch_get_enabled(watch);
 
-  DEBUG(printf(PREFIX "priv_toggled_cb: (%p) enabled=%d.\n", (void*)watch, enabled));
+  DEBUG(fprintf(stderr, PREFIX "priv_toggled_cb: (%p) enabled=%d.\n", (void*)watch, enabled));
 
   if (ctx->dbus_watch == watch) {
     if (enabled == TRUE)
@@ -137,7 +137,7 @@ DBusConnection *test_dbus_make_connection(struct test_ctx *ctx, DBusBusType dbus
 
   conn = dbus_bus_get(dbus_type, &dbus_error);
   if (dbus_error_is_set(&dbus_error) != TRUE) {
-    DEBUG(printf(PREFIX "Connection established to DBus (%d).\n", (int)dbus_type));
+    DEBUG(fprintf(stderr, PREFIX "Connection established to DBus (%d).\n", (int)dbus_type));
   }
   else {
     fprintf(stderr, PREFIX "ERROR: unable to connect to DBus\n");
@@ -199,7 +199,7 @@ static bool test_handle_dbus_ofono(struct test_ctx *ctx, DBusMessage *msg)
     dbus_message_get_args(msg, &dbus_error,
 			  DBUS_TYPE_STRING, &property,
 			  DBUS_TYPE_INVALID);
-    DEBUG(printf(PREFIX "received ofono AudioSettings change, params name='%s'\n",
+    DEBUG(fprintf(stderr, PREFIX "received ofono AudioSettings change, params name='%s'\n",
 		 property));
     if (strcmp(property, "Active") == 0) {
       DBusMessageIter i;
@@ -218,7 +218,7 @@ static bool test_handle_dbus_ofono(struct test_ctx *ctx, DBusMessage *msg)
 	  dbus_message_iter_get_basic(&j, &state);
 
 	  if (state != old_state) {
-	    INFO(printf(PREFIX "org.ofono.AudioSettings.Active to %d.\n", state));
+	    INFO(fprintf(stderr, PREFIX "org.ofono.AudioSettings.Active to %d.\n", state));
 	    cmtspeech_state_change_call_status(ctx->cmtspeech, state);
 	    ctx->call_server_status = state;
 	  }
@@ -243,14 +243,14 @@ static int test_handle_dbus_message(struct test_ctx *ctx, DBusMessage *msg)
   int res = 0;
   const char* dbusif = dbus_message_get_interface(msg);
 
-  DEBUG(printf(PREFIX "got message to if:%s, member:%s.\n",
+  DEBUG(fprintf(stderr, PREFIX "got message to if:%s, member:%s.\n",
 	      dbusif, dbus_message_get_member(msg)));
 
   if (strstr(dbusif, "org.ofono.")) {
     test_handle_dbus_ofono(ctx, msg);
   }
   else
-    INFO(printf(PREFIX "unknown/ignored signal: if=%s, member=%s.\n",
+    INFO(fprintf(stderr, PREFIX "unknown/ignored signal: if=%s, member=%s.\n",
 		dbusif, dbus_message_get_member(msg)));
 
   return res;
@@ -309,13 +309,13 @@ static void priv_parse_options(struct test_ctx *ctx, int argc, char *argv[])
 
       case 'v':
 	++ctx->verbose;
-	printf(PREFIX "Increasing verbosity to %d.\n", ctx->verbose);
+	fprintf(stderr, PREFIX "Increasing verbosity to %d.\n", ctx->verbose);
 	break;
 
       case 'a':
-	printf("Enabling audio path\n");
+	fprintf(stderr, "Enabling audio path\n");
 	ctx->source_fd = 0;
-	ctx->sink_fd = 2;
+	ctx->sink_fd = 1;
 	{
 	  int flags = fcntl(ctx->source_fd, F_GETFL, 0);
 	  fcntl(ctx->source_fd, F_SETFL, flags | O_NONBLOCK);
@@ -335,7 +335,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
   cmtspeech_buffer_t *dlbuf, *ulbuf;
   int res = cmtspeech_dl_buffer_acquire(ctx->cmtspeech, &dlbuf);
   if (res == 0) {
-    DEBUG(printf(PREFIX "Received a DL packet (%u bytes).\n", dlbuf->count));
+    DEBUG(fprintf(stderr, PREFIX "Received a DL packet (%u bytes).\n", dlbuf->count));
     if (cmtspeech_protocol_state(ctx->cmtspeech) ==
 	CMTSPEECH_STATE_ACTIVE_DLUL) {
       res = cmtspeech_ul_buffer_acquire(ctx->cmtspeech, &ulbuf);
@@ -345,11 +345,11 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 	    int num;
 	    num = read(ctx->source_fd, ulbuf->payload, dlbuf->pcount);
 	    if (num != dlbuf->pcount) {
-	      printf("Not enough data on input\n");
+	      fprintf(stderr, "Not enough data on input (%d/%d)\n", num, dlbuf->pcount);
 	    }
 	    write(ctx->sink_fd, dlbuf->payload, dlbuf->pcount);
 	  } else {
-	    DEBUG(printf(PREFIX "Looping DL packet to UL (%u payload bytes).\n", dlbuf->pcount));
+	    DEBUG(fprintf(stderr, PREFIX "Looping DL packet to UL (%u payload bytes).\n", dlbuf->pcount));
 	    memcpy(ulbuf->payload, dlbuf->payload, dlbuf->pcount);
 	  }
 	}
@@ -366,7 +366,7 @@ static int test_handle_cmtspeech_control(struct test_ctx *ctx)
   int state_tr = CMTSPEECH_TR_INVALID;
 
   cmtspeech_read_event(ctx->cmtspeech, &cmtevent);
-  DEBUG(printf(PREFIX "read cmtspeech event %d.\n", cmtevent.msg_type));
+  DEBUG(fprintf(stderr, PREFIX "read cmtspeech event %d.\n", cmtevent.msg_type));
 
   state_tr = cmtspeech_event_to_state_transition(ctx->cmtspeech, &cmtevent);
 
@@ -424,7 +424,7 @@ static int test_mainloop(struct test_ctx *ctx)
 
     pollres = poll(fds, count, -1);
 
-    DEBUG(printf("poll returned %d (count:%d, cmt:%02X, dbus:%02X)\n",
+    DEBUG(fprintf(stderr, "poll returned %d (count:%d, cmt:%02X, dbus:%02X)\n",
 		 pollres, count, fds[cmt].revents, fds[dbus].revents));
 
     if (pollres > 0) {
@@ -505,14 +505,14 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  INFO(printf(PREFIX "Setup succesful, entering mainloop.\n"));
+  INFO(fprintf(stderr, PREFIX "Setup succesful, entering mainloop.\n"));
 
   res = test_mainloop(ctx);
 
   cmtspeech_close(ctx->cmtspeech);
   test_dbus_release(ctx);
 
-  INFO(printf(PREFIX "Completed, exiting (%d).\n", res));
+  INFO(fprintf(stderr, PREFIX "Completed, exiting (%d).\n", res));
 
   return res;
 }
