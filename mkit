@@ -10,6 +10,6 @@ done
 ar rcs libcmtspeech.a cmtspeech_backend_common.o cmtspeech_msgs.o cmtspeech_nokiamodem.o sal_debug.o
 }
 
-build_lib
+# build_lib
 gcc -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabi/dbus-1.0/include/ utils/cmtspeech_ofono_test.c -lpthread -lrt libcmtspeech.a /usr/lib/arm-linux-gnueabi/libdbus-1.a -o cmtspeech_ofono_test
 

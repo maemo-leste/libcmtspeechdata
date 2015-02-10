@@ -48,6 +48,9 @@
 #include <cmtspeech.h>
 #include <dbus/dbus.h>
 
+#include <unistd.h>
+#include <fcntl.h>
+
 struct test_ctx {
   DBusConnection* dbus_conn;
   int dbus_fd;
@@ -55,6 +58,8 @@ struct test_ctx {
   bool call_server_status;
   int verbose;
   cmtspeech_t *cmtspeech;
+  int source_fd;
+  int sink_fd;
 };
 
 #define PREFIX "cmtspeech_ofono_test: "
@@ -280,6 +285,7 @@ static struct option const opt_tbl[] =
   {
     {"verbose",         0, NULL, 'v'},
     {"help",            0, NULL, 'h'},
+    {"audio",           0, NULL, 'a'},
     {NULL,              0, NULL, 0}
   };
 
@@ -297,13 +303,23 @@ static void priv_parse_options(struct test_ctx *ctx, int argc, char *argv[])
 
   assert(ctx);
 
-  while (res = getopt_long(argc, argv, "hv", opt_tbl, &opt_index), res != -1) {
+  while (res = getopt_long(argc, argv, "hva", opt_tbl, &opt_index), res != -1) {
     switch (res)
       {
 
       case 'v':
 	++ctx->verbose;
 	printf(PREFIX "Increasing verbosity to %d.\n", ctx->verbose);
+	break;
+
+      case 'a':
+	printf("Enabling audio path\n");
+	ctx->source_fd = 0;
+	ctx->sink_fd = 2;
+	{
+	  int flags = fcntl(ctx->source_fd, F_GETFL, 0);
+	  fcntl(ctx->source_fd, F_SETFL, flags | O_NONBLOCK);
+	}
 	break;
 
       case 'h':
@@ -325,8 +341,17 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
       res = cmtspeech_ul_buffer_acquire(ctx->cmtspeech, &ulbuf);
       if (res == 0) {
 	if (ulbuf->pcount >= dlbuf->pcount) {
-	  DEBUG(printf(PREFIX "Looping DL packet to UL (%u payload bytes).\n", dlbuf->pcount));
-	  memcpy(ulbuf->payload, dlbuf->payload, dlbuf->pcount);
+	  if (ctx->sink_fd) {
+	    int num;
+	    num = read(ctx->source_fd, ulbuf->payload, dlbuf->pcount);
+	    if (num != dlbuf->pcount) {
+	      printf("Not enough data on input\n");
+	    }
+	    write(ctx->sink_fd, dlbuf->payload, dlbuf->pcount);
+	  } else {
+	    DEBUG(printf(PREFIX "Looping DL packet to UL (%u payload bytes).\n", dlbuf->pcount));
+	    memcpy(ulbuf->payload, dlbuf->payload, dlbuf->pcount);
+	  }
 	}
 	cmtspeech_ul_buffer_release(ctx->cmtspeech, ulbuf);
       }
