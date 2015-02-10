@@ -1,3 +1,4 @@
+build_lib () {
 for a in test_cmtspeech test_cmtspeech_msgs test_ring; do
     echo $a
 #    gcc cmtspeech_backend_common.c cmtspeech_msgs.c cmtspeech_nokiamodem.c sal_debug.c $a.c -I. -lrt -o $a
@@ -7,4 +8,8 @@ for a in cmtspeech_backend_common cmtspeech_msgs cmtspeech_nokiamodem sal_debug;
     gcc -fPIC $a.c -c -I. -o $a.o
 done
 ar rcs libcmtspeech.a cmtspeech_backend_common.o cmtspeech_msgs.o cmtspeech_nokiamodem.o sal_debug.o
+}
+
+build_lib
+gcc -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabi/dbus-1.0/include/ utils/cmtspeech_ofono_test.c -lpthread -lrt libcmtspeech.a /usr/lib/arm-linux-gnueabi/libdbus-1.a -o cmtspeech_ofono_test
 
