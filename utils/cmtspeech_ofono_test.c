@@ -366,16 +366,18 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 	if (ulbuf->pcount >= dlbuf->pcount) {
 	  if (ctx->sink_fd) {
 	    int num;
-	    num = read(ctx->source_fd, ulbuf->payload, dlbuf->pcount);
+
+	    memset(ulbuf->payload, 0, ulbuf->pcount);
+	    num = read(ctx->source_fd, ulbuf->payload, ulbuf->pcount);
 	    if (num != dlbuf->pcount) {
 	      fprintf(stderr, "Not enough data on input (%d/%d)\n", num, dlbuf->pcount);
 	    }
-#if 0	    
+#if 0  
 	    while(1) {
 	      num = read(ctx->source_fd, scratch, 10240);
+	      fprintf(stderr, "Too much data on input (%d)\n", num);
 	      if (num == -1)
 		break;
-	      fprintf(stderr, "Too much data on input (%d)\n", num);
 	    }
 #endif	    
 	    write(ctx->sink_fd, dlbuf->payload, dlbuf->pcount);
