@@ -1,2 +1,2 @@
 #!/bin/bash
-parec --rate=4000 | ./cmtspeech_ofono_test -a -v | pacat --rate=4000
+parec --rate=4000 --latency-msec=100 | ./cmtspeech_ofono_test -a -v | pacat --rate=4000 --latency-msec=100
