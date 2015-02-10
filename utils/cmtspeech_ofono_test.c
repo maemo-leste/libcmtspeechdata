@@ -189,6 +189,24 @@ static void test_dbus_release(struct test_ctx *ctx)
   }
 }
 
+static void flush_input(struct test_ctx *ctx)
+{
+  char scratch[10240];
+  int total = 0;
+
+  fprintf(stderr, "Flushing input...\n");
+  if (!ctx->sink_fd)
+    return;
+  while(1) {
+    int num;
+    num = read(ctx->source_fd, scratch, 10240);
+    if (num == -1)
+      break;
+    total += num;
+  }
+  fprintf(stderr, "Flushing input (%d)\n", total);
+}
+
 static bool test_handle_dbus_ofono(struct test_ctx *ctx, DBusMessage *msg)
 {
   const char* property = NULL;
@@ -219,6 +237,10 @@ static bool test_handle_dbus_ofono(struct test_ctx *ctx, DBusMessage *msg)
 
 	  if (state != old_state) {
 	    INFO(fprintf(stderr, PREFIX "org.ofono.AudioSettings.Active to %d.\n", state));
+	    if (state == 1) {
+	      flush_input(ctx);
+	    }
+	      
 	    cmtspeech_state_change_call_status(ctx->cmtspeech, state);
 	    ctx->call_server_status = state;
 	  }
@@ -333,6 +355,7 @@ static void priv_parse_options(struct test_ctx *ctx, int argc, char *argv[])
 static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 {
   cmtspeech_buffer_t *dlbuf, *ulbuf;
+  char scratch[10240];
   int res = cmtspeech_dl_buffer_acquire(ctx->cmtspeech, &dlbuf);
   if (res == 0) {
     DEBUG(fprintf(stderr, PREFIX "Received a DL packet (%u bytes).\n", dlbuf->count));
@@ -347,6 +370,14 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 	    if (num != dlbuf->pcount) {
 	      fprintf(stderr, "Not enough data on input (%d/%d)\n", num, dlbuf->pcount);
 	    }
+#if 0	    
+	    while(1) {
+	      num = read(ctx->source_fd, scratch, 10240);
+	      if (num == -1)
+		break;
+	      fprintf(stderr, "Too much data on input (%d)\n", num);
+	    }
+#endif	    
 	    write(ctx->sink_fd, dlbuf->payload, dlbuf->pcount);
 	  } else {
 	    DEBUG(fprintf(stderr, PREFIX "Looping DL packet to UL (%u payload bytes).\n", dlbuf->pcount));
@@ -479,6 +510,7 @@ int main(int argc, char *argv[])
   struct test_ctx *ctx = &ctx0;
   int res = 0;
 
+  fprintf(stderr, "NFS sucks, version 0.0.1\n");
   priv_setup_signals();
 
   ctx->dbus_conn = NULL;
