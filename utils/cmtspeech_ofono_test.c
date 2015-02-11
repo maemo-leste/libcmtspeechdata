@@ -60,6 +60,7 @@ struct test_ctx {
   cmtspeech_t *cmtspeech;
   int source_fd;
   int sink_fd;
+  int data_through;
 };
 
 #define PREFIX "cmtspeech_ofono_test: "
@@ -338,6 +339,7 @@ static void priv_parse_options(struct test_ctx *ctx, int argc, char *argv[])
 	fprintf(stderr, "Enabling audio path\n");
 	ctx->source_fd = 0;
 	ctx->sink_fd = 1;
+	ctx->data_through = 0;
 	{
 	  int flags = fcntl(ctx->source_fd, F_GETFL, 0);
 	  fcntl(ctx->source_fd, F_SETFL, flags | O_NONBLOCK);
@@ -372,14 +374,21 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 	    if (num != dlbuf->pcount) {
 	      fprintf(stderr, "Not enough data on input (%d/%d)\n", num, dlbuf->pcount);
 	    }
-#if 0  
-	    while(1) {
-	      num = read(ctx->source_fd, scratch, 10240);
-	      fprintf(stderr, "Too much data on input (%d)\n", num);
-	      if (num == -1)
-		break;
+	    ctx->data_through += ulbuf->pcount;
+
+	    if (ctx->data_through > 100000) {
+	      ctx->data_through = 0;
+	      fprintf(stderr, "Draining input\n");
+	      while(1) {
+		num = read(ctx->source_fd, scratch, 10240);
+		fprintf(stderr, "Too much data on input (%d)\n", num);
+		if (num == -1)
+		  break;
+		if (num < 320)
+		  fprintf(stderr, "Too little to drain (%d)\n", num);
+	      }
 	    }
-#endif	    
+
 	    write(ctx->sink_fd, dlbuf->payload, dlbuf->pcount);
 	  } else {
 	    DEBUG(fprintf(stderr, PREFIX "Looping DL packet to UL (%u payload bytes).\n", dlbuf->pcount));
