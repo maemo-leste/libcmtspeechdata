@@ -1,4 +1,4 @@
-apt-get install pkg-config
+apt-get install pkg-config libpulse-dev
 
 cc program.c $(pkg-config --cflags --libs gnomeui)
-cc pa_test.c $(pkg-config --cflags --libs libpulse-simple)
+cc -g -o pa_test pa_test.c $(pkg-config --cflags --libs libpulse-simple)
