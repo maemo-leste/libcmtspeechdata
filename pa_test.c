@@ -56,12 +56,16 @@ int main(int argc, char*argv[]) {
             goto finish;
         }
 	{
-        pa_usec_t latency;
-        if ((latency = pa_simple_get_latency(p, &error)) == (pa_usec_t) -1) {
+	  pa_usec_t latency_p, latency_r;
+	  if ((latency_p = pa_simple_get_latency(p, &error)) == (pa_usec_t) -1) {
             fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
             goto finish;
-        }
-        fprintf(stderr, "%0.0f usec    \r", (float)latency);
+	  }
+	  if ((latency_r = pa_simple_get_latency(r, &error)) == (pa_usec_t) -1) {
+            fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
+            goto finish;
+	  }
+	  fprintf(stderr, "playback %10.0f usec, record %10.0f usec    \r", (float)latency_p, (float)latency_r);
 	}
         /* ... and play it */
         if (pa_simple_write(p, buf, sizeof(buf), &error) < 0) {
