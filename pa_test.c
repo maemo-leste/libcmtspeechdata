@@ -36,11 +36,6 @@ int main(int argc, char*argv[]) {
     pa_simple *p = NULL;
     int ret = 1;
     int error;
-    /* Create the recording stream */
-    if (!(r = pa_simple_new(NULL, argv[0], PA_STREAM_RECORD, NULL, "record", &ss, NULL, NULL, &error))) {
-        fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
-        goto finish;
-    }
 
     /* Create a new playback stream */
     if (!(p = pa_simple_new(NULL, argv[0], PA_STREAM_PLAYBACK, NULL, "playback", &ss, NULL, NULL, &error))) {
@@ -48,6 +43,13 @@ int main(int argc, char*argv[]) {
         goto finish;
     }
     
+
+    /* Create the recording stream */
+    if (!(r = pa_simple_new(NULL, argv[0], PA_STREAM_RECORD, NULL, "record", &ss, NULL, NULL, &error))) {
+        fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
+        goto finish;
+    }
+
     for (;;) {
         uint8_t buf[BUFSIZE];
         /* Record some data ... */
@@ -65,7 +67,21 @@ int main(int argc, char*argv[]) {
             fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
             goto finish;
 	  }
-	  fprintf(stderr, "playback %10.0f usec, record %10.0f usec    \r", (float)latency_p, (float)latency_r);
+	  fprintf(stderr, "\rplayback %10.0f usec, record %10.0f usec    ", (float)latency_p, (float)latency_r);
+	  if (latency_r > 1330000) {
+	    fprintf(stderr, "...flush\n");
+
+        if (pa_simple_read(r, buf, sizeof(buf), &error) < 0) {
+            fprintf(stderr, __FILE__": pa_simple_read() failed: %s\n", pa_strerror(error));
+            goto finish;
+        }
+#if 0
+	    if (pa_simple_flush(r, &error) < 0) {
+	      fprintf(stderr, __FILE__": pa_simple_flush() failed: %s\n", pa_strerror(error));
+	      goto finish;
+	    }
+#endif
+	  }
 	}
         /* ... and play it */
         if (pa_simple_write(p, buf, sizeof(buf), &error) < 0) {
