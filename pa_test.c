@@ -33,7 +33,7 @@ int main(int argc, char*argv[]) {
         .channels = 2
     };
     static const pa_buffer_attr attr = {
-      .fragsize = (uint32_t) -1,
+      .fragsize = (uint32_t) 4096,
       .maxlength = (uint32_t) -1,
       .minreq = (uint32_t) 1024,
       .prebuf = (uint32_t) -1,
@@ -87,7 +87,7 @@ int main(int argc, char*argv[]) {
 	  
 	  every++;
 	  if (every == 1000) {
-	    fprintf(stderr, "\rplayback %7.2f msec avg %6.1f, record %7.2f usec avg %6.1f   ", 
+	    fprintf(stderr, "\rplayback %7.2f msec avg %6.1f, record %7.2f msec avg %6.1f   ", 
 		  (float)latency_p, (float)latency_p_avg, (float)latency_r, (float)latency_r_avg);
 	    every = 0;
 	  }
