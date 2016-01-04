@@ -33,17 +33,17 @@ int main(int argc, char*argv[]) {
         .channels = 2
     };
     static const pa_buffer_attr attr = {
-      .fragsize = 1024,
-      .maxlength = 1024,
-      .minreq = 1024,
-      .prebuf = 1024,
-      .tlength = 1024,
+      .fragsize = (uint32_t) -1,
+      .maxlength = (uint32_t) -1,
+      .minreq = (uint32_t) 1024,
+      .prebuf = (uint32_t) -1,
+      .tlength = (uint32_t) 4096,
     };
     pa_simple *r = NULL;
     pa_simple *p = NULL;
     int ret = 1;
     int error;
-    pa_buffer_attr *p_attr = NULL; // &attr;
+    const pa_buffer_attr *p_attr = &attr;
     int opt = 0; // | PA_STREAM_ADJUST_LATENCY
 
     /* Create a new playback stream */
@@ -69,6 +69,7 @@ int main(int argc, char*argv[]) {
 	{
 	  pa_usec_t latency_p, latency_r;
 	  static pa_usec_t latency_p_avg, latency_r_avg;
+	  static int every;
 
 	  if ((latency_p = pa_simple_get_latency(p, &error)) == (pa_usec_t) -1) {
             fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
@@ -78,12 +79,19 @@ int main(int argc, char*argv[]) {
             fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
             goto finish;
 	  }
+	  latency_p /= 1000.;
+	  latency_r /= 1000.;
 	  float factor = 0.01;
 	  latency_p_avg = (latency_p_avg * (1 - factor)) + latency_p * factor; 
-	  latency_r_avg = (latency_r_avg * (1 - factor)) + latency_r * factor; 
-	  fprintf(stderr, "\rplayback %7.0f usec avg %7.0f, record %7.0f usec avg %7.0f   ", 
+	  latency_r_avg = (latency_r_avg * (1 - factor)) + latency_r * factor;
+	  
+	  every++;
+	  if (every == 1000) {
+	    fprintf(stderr, "\rplayback %7.2f msec avg %6.1f, record %7.2f usec avg %6.1f   ", 
 		  (float)latency_p, (float)latency_p_avg, (float)latency_r, (float)latency_r_avg);
-	  if (latency_r > 1330000) {
+	    every = 0;
+	  }
+	  if (latency_r > 3330000) {
 	    fprintf(stderr, "...flush\n");
 
 #if 0
