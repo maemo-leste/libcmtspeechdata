@@ -78,8 +78,9 @@ int main(int argc, char*argv[]) {
             fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
             goto finish;
 	  }
-	  latency_p_avg = (latency_p_avg * 0.9) + latency_p * 0.1; 
-	  latency_r_avg = (latency_r_avg * 0.9) + latency_r * 0.1; 
+	  float factor = 0.01;
+	  latency_p_avg = (latency_p_avg * (1 - factor)) + latency_p * factor; 
+	  latency_r_avg = (latency_r_avg * (1 - factor)) + latency_r * factor; 
 	  fprintf(stderr, "\rplayback %7.0f usec avg %7.0f, record %7.0f usec avg %7.0f   ", 
 		  (float)latency_p, (float)latency_p_avg, (float)latency_r, (float)latency_r_avg);
 	  if (latency_r > 1330000) {
