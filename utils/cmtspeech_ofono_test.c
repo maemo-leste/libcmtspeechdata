@@ -246,6 +246,31 @@ static void stop_sound(struct test_ctx *ctx)
     ctx->sink = NULL;
 }
 
+static void report_sound(struct test_ctx *ctx)
+{
+  pa_usec_t latency_p, latency_r;
+  int error;
+  if ((latency_p = pa_simple_get_latency(ctx->sink, &error)) == (pa_usec_t) -1) {
+    fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
+    exit(1);
+  }
+  if ((latency_r = pa_simple_get_latency(ctx->source, &error)) == (pa_usec_t) -1) {
+    fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
+    exit(1);
+  }
+
+	  if (latency_r > 1330000) {
+	    fprintf(stderr, "...flush\n");
+
+	    if (pa_simple_flush(ctx->source, &error) < 0) {
+	      fprintf(stderr, __FILE__": pa_simple_flush() failed: %s\n", pa_strerror(error));
+	      goto finish;
+	    }
+
+
+  fprintf(stderr, "\rplayback %10.0f usec, record %10.0f usec    ", (float)latency_p, (float)latency_r);
+}
+
 
 
 static bool test_handle_dbus_ofono(struct test_ctx *ctx, DBusMessage *msg)
@@ -417,8 +442,8 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 
 	    memset(ulbuf->payload, 0, ulbuf->pcount);
 	    num = pa_simple_read(ctx->source, ulbuf->payload, ulbuf->pcount, &error);
-	    if (num != dlbuf->pcount) {
-	      fprintf(stderr, "Not enough data on input (%d/%d), error %s\n", num, dlbuf->pcount,
+	    if (num != ulbuf->pcount) {
+	      fprintf(stderr, "Not enough data on input (%d/%d), error %s\n", num, ulbuf->pcount,
 		      pa_strerror(error));
 	    }
 	    ctx->data_through += ulbuf->pcount;
@@ -437,9 +462,12 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 	      }
 	    }
 #endif
-	    if (dlbuf->pcount != pa_simple_write(ctx->sink, dlbuf->payload, dlbuf->pcount, &error)) {
-	      fprintf(stderr, "Error on output?, error %s\n", pa_strerror(error));
+	    num = pa_simple_write(ctx->sink, dlbuf->payload, dlbuf->pcount, &error);
+	    if (dlbuf->pcount != num) {
+	      fprintf(stderr, "Error on output? %d/%d, error %s\n", num, dlbuf->pcount, pa_strerror(error));
 	    }
+
+	    report_sound(ctx);
 	  } else {
 	    DEBUG(fprintf(stderr, PREFIX "Looping DL packet to UL (%u payload bytes).\n", dlbuf->pcount));
 	    memcpy(ulbuf->payload, dlbuf->payload, dlbuf->pcount);

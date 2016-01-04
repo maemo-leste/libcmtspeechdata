@@ -32,20 +32,29 @@ int main(int argc, char*argv[]) {
         .rate = 44100,
         .channels = 2
     };
+    static const pa_buffer_attr attr = {
+      .fragsize = 1024,
+      .maxlength = 1024,
+      .minreq = 1024,
+      .prebuf = 1024,
+      .tlength = 1024,
+    };
     pa_simple *r = NULL;
     pa_simple *p = NULL;
     int ret = 1;
     int error;
+    pa_buffer_attr *p_attr = NULL; // &attr;
+    int opt = 0; // | PA_STREAM_ADJUST_LATENCY
 
     /* Create a new playback stream */
-    if (!(p = pa_simple_new(NULL, argv[0], PA_STREAM_PLAYBACK, NULL, "playback", &ss, NULL, NULL, &error))) {
+    if (!(p = pa_simple_new(NULL, argv[0], PA_STREAM_PLAYBACK | opt, NULL, "playback", &ss, NULL, p_attr, &error))) {
         fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
         goto finish;
     }
     
 
     /* Create the recording stream */
-    if (!(r = pa_simple_new(NULL, argv[0], PA_STREAM_RECORD, NULL, "record", &ss, NULL, NULL, &error))) {
+    if (!(r = pa_simple_new(NULL, argv[0], PA_STREAM_RECORD | opt, NULL, "record", &ss, NULL, p_attr, &error))) {
         fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
         goto finish;
     }
@@ -59,6 +68,8 @@ int main(int argc, char*argv[]) {
         }
 	{
 	  pa_usec_t latency_p, latency_r;
+	  static pa_usec_t latency_p_avg, latency_r_avg;
+
 	  if ((latency_p = pa_simple_get_latency(p, &error)) == (pa_usec_t) -1) {
             fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
             goto finish;
@@ -67,14 +78,13 @@ int main(int argc, char*argv[]) {
             fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
             goto finish;
 	  }
-	  fprintf(stderr, "\rplayback %10.0f usec, record %10.0f usec    ", (float)latency_p, (float)latency_r);
+	  latency_p_avg = (latency_p_avg * 0.9) + latency_p * 0.1; 
+	  latency_r_avg = (latency_r_avg * 0.9) + latency_r * 0.1; 
+	  fprintf(stderr, "\rplayback %7.0f usec avg %7.0f, record %7.0f usec avg %7.0f   ", 
+		  (float)latency_p, (float)latency_p_avg, (float)latency_r, (float)latency_r_avg);
 	  if (latency_r > 1330000) {
 	    fprintf(stderr, "...flush\n");
 
-        if (pa_simple_read(r, buf, sizeof(buf), &error) < 0) {
-            fprintf(stderr, __FILE__": pa_simple_read() failed: %s\n", pa_strerror(error));
-            goto finish;
-        }
 #if 0
 	    if (pa_simple_flush(r, &error) < 0) {
 	      fprintf(stderr, __FILE__": pa_simple_flush() failed: %s\n", pa_strerror(error));
