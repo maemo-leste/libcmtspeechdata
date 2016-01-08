@@ -66,6 +66,12 @@ int main(int argc, char*argv[]) {
             fprintf(stderr, __FILE__": pa_simple_read() failed: %s\n", pa_strerror(error));
             goto finish;
         }
+        /* ... and play it */
+        if (pa_simple_write(p, buf, sizeof(buf), &error) < 0) {
+            fprintf(stderr, __FILE__": pa_simple_write() failed: %s\n", pa_strerror(error));
+            goto finish;
+        }
+	
 	{
 	  pa_usec_t latency_p, latency_r;
 	  static pa_usec_t latency_p_avg, latency_r_avg;
@@ -102,11 +108,6 @@ int main(int argc, char*argv[]) {
 #endif
 	  }
 	}
-        /* ... and play it */
-        if (pa_simple_write(p, buf, sizeof(buf), &error) < 0) {
-            fprintf(stderr, __FILE__": pa_simple_write() failed: %s\n", pa_strerror(error));
-            goto finish;
-        }
 	
 
     }

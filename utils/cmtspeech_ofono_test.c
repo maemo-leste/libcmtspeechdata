@@ -214,64 +214,71 @@ static void flush_input(struct test_ctx *ctx)
 }
 #endif
 
-static void start_sound(struct test_ctx *ctx)
+/* FIXME: Hmm. That makes no sense. Is it rate = 8000, channels = 1? */
+static const pa_sample_spec ss = {
+	.format = PA_SAMPLE_S16LE,
+	.rate = 4000,
+	.channels = 2
+};
+
+static void start_sink(struct test_ctx *ctx)
 {
-  int error;
-    /* The sample type to use */
-    static const pa_sample_spec ss = {
-        .format = PA_SAMPLE_S16LE,
-        .rate = 4000,
-        .channels = 2
-    };
-
-    if (!(ctx->sink = pa_simple_new(NULL, "libcmtspeech_ofono", PA_STREAM_PLAYBACK, NULL, "playback", &ss, NULL, NULL, &error))) {
-        fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
-        exit(1);
-    }
-
-    /* Create the recording stream */
-    if (!(ctx->source = pa_simple_new(NULL, "libcmtspeech_ofono", PA_STREAM_RECORD, NULL, "record", &ss, NULL, NULL, &error))) {
-        fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
-        exit(1);
-    }
+	int error;
+	/* The sample type to use */
+	if (!(ctx->sink = pa_simple_new(NULL, "libcmtspeech_ofono", PA_STREAM_PLAYBACK, NULL, "playback", &ss, NULL, NULL, &error))) {
+		fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
+		exit(1);
+	}
 }
 
-static void stop_sound(struct test_ctx *ctx)
+static void start_source(struct test_ctx *ctx)
 {
-    if (ctx->source)
-        pa_simple_free(ctx->source);
-    if (ctx->sink)
-        pa_simple_free(ctx->sink);
-    ctx->source = NULL;    
-    ctx->sink = NULL;
+	int error;
+	/* Create the recording stream */
+	if (!(ctx->source = pa_simple_new(NULL, "libcmtspeech_ofono", PA_STREAM_RECORD, NULL, "record", &ss, NULL, NULL, &error))) {
+		fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
+		exit(1);
+	}
+}
+
+static void stop_source(struct test_ctx *ctx)
+{
+	if (ctx->source)
+		pa_simple_free(ctx->source);
+	ctx->source = NULL;    
+}
+
+static void stop_sink(struct test_ctx *ctx)
+{
+	if (ctx->sink)
+		pa_simple_free(ctx->sink);
+	ctx->sink = NULL;
 }
 
 static void report_sound(struct test_ctx *ctx)
 {
-  pa_usec_t latency_p, latency_r;
-  int error;
-  if ((latency_p = pa_simple_get_latency(ctx->sink, &error)) == (pa_usec_t) -1) {
-    fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
-    exit(1);
-  }
-  if ((latency_r = pa_simple_get_latency(ctx->source, &error)) == (pa_usec_t) -1) {
-    fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
-    exit(1);
-  }
+	pa_usec_t latency_p, latency_r;
+	int error;
+	if ((latency_p = pa_simple_get_latency(ctx->sink, &error)) == (pa_usec_t) -1) {
+		fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
+		exit(1);
+	}
+	if ((latency_r = pa_simple_get_latency(ctx->source, &error)) == (pa_usec_t) -1) {
+		fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
+		exit(1);
+	}
 
-	  if (latency_r > 1330000) {
-	    fprintf(stderr, "...flush\n");
+	if (latency_r > 1330000) {
+		fprintf(stderr, "...flush\n");
 
-	    if (pa_simple_flush(ctx->source, &error) < 0) {
-	      fprintf(stderr, __FILE__": pa_simple_flush() failed: %s\n", pa_strerror(error));
-	      goto finish;
-	    }
+		if (pa_simple_flush(ctx->source, &error) < 0) {
+			fprintf(stderr, __FILE__": pa_simple_flush() failed: %s\n", pa_strerror(error));
+			return;
+		}
 
-
-  fprintf(stderr, "\rplayback %10.0f usec, record %10.0f usec    ", (float)latency_p, (float)latency_r);
+		fprintf(stderr, "\rplayback %10.0f usec, record %10.0f usec    ", (float)latency_p, (float)latency_r);
+	}
 }
-
-
 
 static bool test_handle_dbus_ofono(struct test_ctx *ctx, DBusMessage *msg)
 {
@@ -303,13 +310,14 @@ static bool test_handle_dbus_ofono(struct test_ctx *ctx, DBusMessage *msg)
 
 	  if (state != old_state) {
 	    INFO(fprintf(stderr, PREFIX "org.ofono.AudioSettings.Active to %d.\n", state));
+#if 0	    
 	    if (state == 1) {
 	      start_sound(ctx);
 	    }
 	    if (state == 0) {
 	      stop_sound(ctx);
 	    }
-	      
+#endif	      
 	    cmtspeech_state_change_call_status(ctx->cmtspeech, state);
 	    ctx->call_server_status = state;
 	  }
@@ -426,58 +434,55 @@ static void priv_parse_options(struct test_ctx *ctx, int argc, char *argv[])
 
 static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 {
-  cmtspeech_buffer_t *dlbuf, *ulbuf;
-  char scratch[10240];
-  int res = cmtspeech_dl_buffer_acquire(ctx->cmtspeech, &dlbuf);
-  if (res == 0) {
-    DEBUG(fprintf(stderr, PREFIX "Received a DL packet (%u bytes).\n", dlbuf->count));
-    if (cmtspeech_protocol_state(ctx->cmtspeech) ==
-	CMTSPEECH_STATE_ACTIVE_DLUL) {
-      res = cmtspeech_ul_buffer_acquire(ctx->cmtspeech, &ulbuf);
-      if (res == 0) {
-	if (ulbuf->pcount >= dlbuf->pcount) {
-	  if (ctx->sink) {
-	    int num;
-	    int error;
+	cmtspeech_buffer_t *dlbuf, *ulbuf;
+	char scratch[10240];
+	int res, error, num;
 
-	    memset(ulbuf->payload, 0, ulbuf->pcount);
-	    num = pa_simple_read(ctx->source, ulbuf->payload, ulbuf->pcount, &error);
-	    if (num != ulbuf->pcount) {
-	      fprintf(stderr, "Not enough data on input (%d/%d), error %s\n", num, ulbuf->pcount,
-		      pa_strerror(error));
-	    }
-	    ctx->data_through += ulbuf->pcount;
+	while (1) {
+		pa_usec_t latency_r;
+		
+		if ((latency_r = pa_simple_get_latency(ctx->source, &error)) == (pa_usec_t) -1) {
+			fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
+			exit(1);
+		}
 
-#if 0
-	    if (ctx->data_through > 100000) {
-	      ctx->data_through = 0;
-	      fprintf(stderr, "Draining input\n");
-	      while(1) {
-		num = read(ctx->source_fd, scratch, 10240);
-		fprintf(stderr, "Too much data on input (%d)\n", num);
-		if (num == -1)
-		  break;
-		if (num < 320)
-		  fprintf(stderr, "Too little to drain (%d)\n", num);
-	      }
-	    }
-#endif
-	    num = pa_simple_write(ctx->sink, dlbuf->payload, dlbuf->pcount, &error);
-	    if (dlbuf->pcount != num) {
-	      fprintf(stderr, "Error on output? %d/%d, error %s\n", num, dlbuf->pcount, pa_strerror(error));
-	    }
+		if (latency_r < 10000)
+			break;
 
-	    report_sound(ctx);
-	  } else {
-	    DEBUG(fprintf(stderr, PREFIX "Looping DL packet to UL (%u payload bytes).\n", dlbuf->pcount));
-	    memcpy(ulbuf->payload, dlbuf->payload, dlbuf->pcount);
-	  }
+		res = cmtspeech_ul_buffer_acquire(ctx->cmtspeech, &ulbuf);
+		if (res != 0)
+			break;
+
+		num = pa_simple_read(ctx->source, ulbuf->payload, ulbuf->pcount, &error);
+		if (num != ulbuf->pcount) {
+			fprintf(stderr, "Not enough data on input (%d/%d), error %s\n", num, ulbuf->pcount,
+				pa_strerror(error));
+		}
+		ctx->data_through += ulbuf->pcount;
+      
+		res = cmtspeech_ul_buffer_release(ctx->cmtspeech, ulbuf);
+		if (res != 0)
+			fprintf(stderr, "Could notrelease ulbuf, says (%d)\n", res);
 	}
-	cmtspeech_ul_buffer_release(ctx->cmtspeech, ulbuf);
-      }
-    }
-    res = cmtspeech_dl_buffer_release(ctx->cmtspeech, dlbuf);
-  }
+     
+	res = cmtspeech_dl_buffer_acquire(ctx->cmtspeech, &dlbuf);
+	if (res != 0) {
+		return;
+	}
+
+	DEBUG(fprintf(stderr, PREFIX "Received a DL packet (%u bytes).\n", dlbuf->count));
+	/* (cmtspeech_protocol_state(ctx->cmtspeech) == CMTSPEECH_STATE_ACTIVE_DLUL) */
+  
+	if (!ctx->sink) {
+		fprintf(stderr, PREFIX "have packet but no sink?.\n");
+		return;
+	}
+	num = pa_simple_write(ctx->sink, dlbuf->payload, dlbuf->pcount, &error);
+	if (dlbuf->pcount != num) {
+		fprintf(stderr, "Error on output? %d/%d, error %s\n", num, dlbuf->pcount, pa_strerror(error));
+	}
+	report_sound(ctx);	
+	res = cmtspeech_dl_buffer_release(ctx->cmtspeech, dlbuf);
 }
 
 static int test_handle_cmtspeech_control(struct test_ctx *ctx)
@@ -498,8 +503,16 @@ static int test_handle_cmtspeech_control(struct test_ctx *ctx)
 
     case CMTSPEECH_TR_1_CONNECTED:
     case CMTSPEECH_TR_2_DISCONNECTED:
+	    break;
     case CMTSPEECH_TR_3_DL_START:
+      /* Start audio playback here ? */
+	    start_sink(ctx);
+	    break;
     case CMTSPEECH_TR_4_DLUL_STOP:
+	    stop_source(ctx);
+	    stop_sink(ctx);
+	    break;
+      /* Stop audio ? */
     case CMTSPEECH_TR_5_PARAM_UPDATE:
       /* no-op */
       break;
@@ -509,10 +522,15 @@ static int test_handle_cmtspeech_control(struct test_ctx *ctx)
       INFO(printf(PREFIX "WARNING: modem UL timing update ignored\n"));
 
     case CMTSPEECH_TR_10_RESET:
+	    break;
     case CMTSPEECH_TR_11_UL_STOP:
+	    stop_source(ctx);
+	    break;
     case CMTSPEECH_TR_12_UL_START:
+	    start_source(ctx);
+	    break;
+      /* Start audio record? */
       /* no-op */
-      break;
 
     default:
       assert(0);
@@ -547,6 +565,7 @@ static int test_mainloop(struct test_ctx *ctx)
     DEBUG(fprintf(stderr, "poll returned %d (count:%d, cmt:%02X, dbus:%02X)\n",
 		 pollres, count, fds[cmt].revents, fds[dbus].revents));
 
+    /* Should we poll for audio, too? */
     if (pollres > 0) {
 
       if (fds[cmt].revents) {
