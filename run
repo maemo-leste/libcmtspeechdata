@@ -1,2 +1,2 @@
 #!/bin/bash
-./cmtspeech_ofono_test -a -v
+./cmtspeech_ofono_test -a -v -v

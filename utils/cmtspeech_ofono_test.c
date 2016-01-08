@@ -257,27 +257,22 @@ static void stop_sink(struct test_ctx *ctx)
 
 static void report_sound(struct test_ctx *ctx)
 {
-	pa_usec_t latency_p, latency_r;
+	pa_usec_t latency_p = -999999, latency_r = -999999;
 	int error;
-	if ((latency_p = pa_simple_get_latency(ctx->sink, &error)) == (pa_usec_t) -1) {
-		fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
-		exit(1);
-	}
-	if ((latency_r = pa_simple_get_latency(ctx->source, &error)) == (pa_usec_t) -1) {
-		fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
-		exit(1);
-	}
 
-	if (latency_r > 1330000) {
-		fprintf(stderr, "...flush\n");
-
-		if (pa_simple_flush(ctx->source, &error) < 0) {
-			fprintf(stderr, __FILE__": pa_simple_flush() failed: %s\n", pa_strerror(error));
-			return;
+	if (ctx->sink)
+		if ((latency_p = pa_simple_get_latency(ctx->sink, &error)) == (pa_usec_t) -1) {
+			fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
+			exit(1);
 		}
 
-		fprintf(stderr, "\rplayback %10.0f usec, record %10.0f usec    ", (float)latency_p, (float)latency_r);
-	}
+	if (ctx->source)
+		if ((latency_r = pa_simple_get_latency(ctx->source, &error)) == (pa_usec_t) -1) {
+			fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
+			exit(1);
+		}
+
+	fprintf(stderr, "playback %10.0f usec, record %10.0f usec   \n", (float)latency_p, (float)latency_r);
 }
 
 static bool test_handle_dbus_ofono(struct test_ctx *ctx, DBusMessage *msg)
@@ -437,8 +432,12 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 	cmtspeech_buffer_t *dlbuf, *ulbuf;
 	char scratch[10240];
 	int res, error, num;
+	int state = cmtspeech_protocol_state(ctx->cmtspeech);
+	int active_ul = (state == CMTSPEECH_STATE_ACTIVE_DLUL);
+	int active_dl = (state == CMTSPEECH_STATE_ACTIVE_DLUL) || (state == CMTSPEECH_STATE_ACTIVE_DL);
+	int loops;
 
-	while (1) {
+	while (ctx->source && active_ul) {
 		pa_usec_t latency_r;
 		
 		if ((latency_r = pa_simple_get_latency(ctx->source, &error)) == (pa_usec_t) -1) {
@@ -446,24 +445,41 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 			exit(1);
 		}
 
-		if (latency_r < 10000)
+		if (latency_r < 100000)
 			break;
+
+		if (latency_r > 1330000) {
+		  fprintf(stderr, "...flush\n");
+		  /* Flush during recording is only available in pulseaudio 5.0+ */
+		  if (pa_simple_flush(ctx->source, &error) < 0) {
+			fprintf(stderr, __FILE__": pa_simple_flush() failed: %s\n", pa_strerror(error));
+		  }
+		}
 
 		res = cmtspeech_ul_buffer_acquire(ctx->cmtspeech, &ulbuf);
 		if (res != 0)
 			break;
 
+		memset(ulbuf->payload, 0, ulbuf->pcount);
 		num = pa_simple_read(ctx->source, ulbuf->payload, ulbuf->pcount, &error);
-		if (num != ulbuf->pcount) {
-			fprintf(stderr, "Not enough data on input (%d/%d), error %s\n", num, ulbuf->pcount,
+		if (num < 0) {
+			fprintf(stderr, "error reading from source (%d), error %s\n", ulbuf->pcount,
 				pa_strerror(error));
+			break;
 		}
+
 		ctx->data_through += ulbuf->pcount;
       
 		res = cmtspeech_ul_buffer_release(ctx->cmtspeech, ulbuf);
-		if (res != 0)
+		if (res != 0) {
 			fprintf(stderr, "Could notrelease ulbuf, says (%d)\n", res);
+			break;
+		}
+		break;
 	}
+
+	if (!active_dl)
+	  return;
      
 	res = cmtspeech_dl_buffer_acquire(ctx->cmtspeech, &dlbuf);
 	if (res != 0) {
@@ -471,15 +487,15 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 	}
 
 	DEBUG(fprintf(stderr, PREFIX "Received a DL packet (%u bytes).\n", dlbuf->count));
-	/* (cmtspeech_protocol_state(ctx->cmtspeech) == CMTSPEECH_STATE_ACTIVE_DLUL) */
+	/*  */
   
 	if (!ctx->sink) {
 		fprintf(stderr, PREFIX "have packet but no sink?.\n");
-		return;
+		exit(1);
 	}
 	num = pa_simple_write(ctx->sink, dlbuf->payload, dlbuf->pcount, &error);
-	if (dlbuf->pcount != num) {
-		fprintf(stderr, "Error on output? %d/%d, error %s\n", num, dlbuf->pcount, pa_strerror(error));
+	if (num < 0) {
+		fprintf(stderr, "Error writing to sink, %d, error %s\n", dlbuf->pcount, pa_strerror(error));
 	}
 	report_sound(ctx);	
 	res = cmtspeech_dl_buffer_release(ctx->cmtspeech, dlbuf);
@@ -494,6 +510,7 @@ static int test_handle_cmtspeech_control(struct test_ctx *ctx)
   DEBUG(fprintf(stderr, PREFIX "read cmtspeech event %d.\n", cmtevent.msg_type));
 
   state_tr = cmtspeech_event_to_state_transition(ctx->cmtspeech, &cmtevent);
+  DEBUG(fprintf(stderr, PREFIX "state transition %d.\n", state_tr));
 
   switch(state_tr)
     {
