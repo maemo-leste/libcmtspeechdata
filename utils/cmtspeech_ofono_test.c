@@ -448,11 +448,17 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 		if (latency_r < 100000)
 			break;
 
-		if (latency_r > 1330000) {
-		  fprintf(stderr, "...flush\n");
-		  /* Flush during recording is only available in pulseaudio 5.0+ */
-		  if (pa_simple_flush(ctx->source, &error) < 0) {
-			fprintf(stderr, __FILE__": pa_simple_flush() failed: %s\n", pa_strerror(error));
+		while (latency_r > 1000000) {
+		  fprintf(stderr, "...flush latency (%d)\n", latency_r);
+		  num = pa_simple_read(ctx->source, scratch, 320, &error);
+		  if (num < 0){
+		    fprintf(stderr, __FILE__": error during flushing: %s\n", pa_strerror(error));
+		    exit(1);
+		  }
+
+		  if ((latency_r = pa_simple_get_latency(ctx->source, &error)) == (pa_usec_t) -1) {
+		    fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
+		    exit(1);
 		  }
 		}
 
