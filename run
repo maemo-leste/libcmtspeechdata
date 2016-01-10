@@ -1,2 +1,2 @@
 #!/bin/bash
-./cmtspeech_ofono_test -a -v -v
+nice -n -20 ./cmtspeech_ofono_test -a -v -v | tee /my/cmtspeech.log
