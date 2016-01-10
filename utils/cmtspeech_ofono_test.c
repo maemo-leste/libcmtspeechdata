@@ -445,10 +445,12 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 			exit(1);
 		}
 
-		if (latency_r < 100000)
+		if (latency_r < 100000) {
+		  fprintf(stderr, "...skip latency (%d)\n", latency_r);
 			break;
+		}
 
-		while (latency_r > 1000000) {
+		if (latency_r > 1000000) {
 		  fprintf(stderr, "...flush latency (%d)\n", latency_r);
 		  num = pa_simple_read(ctx->source, scratch, 320, &error);
 		  if (num < 0){
