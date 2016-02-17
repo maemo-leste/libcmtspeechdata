@@ -1,2 +1,7 @@
 #!/bin/bash
+echo "libcmtspeech data: preparing"
+sleep 50
+echo "starting"
+cd /my/libcmtspeechdata
 nice -n -20 ./cmtspeech_ofono_test -a -v -v | tee /my/cmtspeech.log
+sleep 1h
