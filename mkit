@@ -17,5 +17,7 @@ echo "FIXME: when opening streams, specify some reasonable buffer sizes"
 # build_lib
 gcc -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabi/dbus-1.0/include/ utils/cmtspeech_ofono_test.c -lpthread -lrt libcmtspeech.a /usr/lib/arm-linux-gnueabi/libdbus-1.a $(pkg-config --cflags --libs libpulse-simple) -o cmtspeech_ofono_test
 
+gcc $(pkg-config --cflags --libs libpulse-simple) pa_test.c -o pa_test
+
 # git remote add gitorious git@gitorious.org:libcmtspeechdata/libcmtspeechdata.git
 # git push -u gitorious master
