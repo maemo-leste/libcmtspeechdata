@@ -1,0 +1,3 @@
+#!/bin/bash
+cd /my/libcmtspeechdata
+sudo nice -n -20 ./pa_test
