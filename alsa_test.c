@@ -390,107 +390,9 @@ long writebuf(snd_pcm_t *handle, char *buf, long len, size_t *frames)
 	return 0;
 }
 			
-#define FILTERSWEEP_LFO_CENTER 2000.
-#define FILTERSWEEP_LFO_DEPTH 1800.
-#define FILTERSWEEP_LFO_FREQ 0.2
-#define FILTER_BANDWIDTH 50
-
-/* filter the sweep variables */
-float lfo,dlfo,fs,fc,BW,C,D,a0,a1,a2,b1,b2,*x[3],*y[3];
-
-void applyeffect(char* buffer,int r)
-{
-	short* samples = (short*) buffer;
-	int i;
-	for (i=0;i<r;i++)
-	{
-		int chn;
-
-		fc = sin(lfo)*FILTERSWEEP_LFO_DEPTH+FILTERSWEEP_LFO_CENTER;
-		lfo += dlfo;
-		if (lfo>2.*M_PI) lfo -= 2.*M_PI;
-		C = 1./tan(M_PI*BW/fs);
-		D = 2.*cos(2*M_PI*fc/fs);
-		a0 = 1./(1.+C);
-		a1 = 0;
-		a2 = -a0;
-		b1 = -C*D*a0;
-		b2 = (C-1)*a0;
-
-		for (chn=0;chn<channels;chn++)
-		{
-			x[chn][2] = x[chn][1];
-			x[chn][1] = x[chn][0];
-
-			y[chn][2] = y[chn][1];
-			y[chn][1] = y[chn][0];
-
-			x[chn][0] = samples[i*channels+chn];
-			y[chn][0] = a0*x[chn][0] + a1*x[chn][1] + a2*x[chn][2] 
-				- b1*y[chn][1] - b2*y[chn][2];
-			samples[i*channels+chn] = y[chn][0];
-		}
-	}
-}
-
-void help(void)
-{
-	int k;
-	printf(
-"Usage: latency [OPTION]... [FILE]...\n"
-"-h,--help      help\n"
-"-P,--pdevice   playback device\n"
-"-C,--cdevice   capture device\n"
-"-m,--min       minimum latency in frames\n"
-"-M,--max       maximum latency in frames\n"
-"-F,--frames    frames to transfer\n"
-"-f,--format    sample format\n"
-"-c,--channels  channels\n"
-"-r,--rate      rate\n"
-"-B,--buffer    buffer size in frames\n"
-"-E,--period    period size in frames\n"
-"-s,--seconds   duration of test in seconds\n"
-"-b,--block     block mode\n"
-"-p,--poll      use poll (wait for event - reduces CPU usage)\n"
-"-e,--effect    apply an effect (bandpass filter sweep)\n"
-);
-        printf("Recognized sample formats are:");
-        for (k = 0; k < SND_PCM_FORMAT_LAST; ++k) {
-                const char *s = snd_pcm_format_name(k);
-                if (s)
-                        printf(" %s", s);
-        }
-        printf("\n\n");
-        printf(
-"Tip #1 (usable latency with large periods, non-blocking mode, good CPU usage,\n"
-"        superb xrun prevention):\n"
-"  latency -m 8192 -M 8192 -t 1 -p\n"
-"Tip #2 (superb latency, non-blocking mode, but heavy CPU usage):\n"
-"  latency -m 128 -M 128\n"
-);
-}
 
 int main(int argc, char *argv[])
 {
-	struct option long_option[] =
-	{
-		{"help", 0, NULL, 'h'},
-		{"pdevice", 1, NULL, 'P'},
-		{"cdevice", 1, NULL, 'C'},
-		{"min", 1, NULL, 'm'},
-		{"max", 1, NULL, 'M'},
-		{"frames", 1, NULL, 'F'},
-		{"format", 1, NULL, 'f'},
-		{"channels", 1, NULL, 'c'},
-		{"rate", 1, NULL, 'r'},
-		{"buffer", 1, NULL, 'B'},
-		{"period", 1, NULL, 'E'},
-		{"seconds", 1, NULL, 's'},
-		{"block", 0, NULL, 'b'},
-		{"poll", 0, NULL, 'p'},
-		{"effect", 0, NULL, 'e'},
-		{NULL, 0, NULL, 0},
-	};
 	snd_pcm_t *phandle, *chandle;
 	char *buffer;
 	int err, latency, morehelp;
@@ -500,76 +402,7 @@ int main(int argc, char *argv[])
 	size_t frames_in, frames_out, in_max;
 	int effect = 0;
 	morehelp = 0;
-	while (1) {
-		int c;
-		if ((c = getopt_long(argc, argv, "hP:C:m:M:F:f:c:r:B:E:s:bpen", long_option, NULL)) < 0)
-			break;
-		switch (c) {
-		case 'h':
-			morehelp++;
-			break;
-		case 'P':
-			pdevice = strdup(optarg);
-			break;
-		case 'C':
-			cdevice = strdup(optarg);
-			break;
-		case 'm':
-			err = atoi(optarg) / 2;
-			latency_min = err >= 4 ? err : 4;
-			if (latency_max < latency_min)
-				latency_max = latency_min;
-			break;
-		case 'M':
-			err = atoi(optarg) / 2;
-			latency_max = latency_min > err ? latency_min : err;
-			break;
-		case 'f':
-			format = snd_pcm_format_value(optarg);
-			if (format == SND_PCM_FORMAT_UNKNOWN) {
-				printf("Unknown format, setting to default S16_LE\n");
-				format = SND_PCM_FORMAT_S16_LE;
-			}
-			break;
-		case 'c':
-			err = atoi(optarg);
-			channels = err >= 1 && err < 1024 ? err : 1;
-			break;
-		case 'r':
-			err = atoi(optarg);
-			rate = err >= 4000 && err < 200000 ? err : 44100;
-			break;
-		case 'B':
-			err = atoi(optarg);
-			buffer_size = err >= 32 && err < 200000 ? err : 0;
-			break;
-		case 'E':
-			err = atoi(optarg);
-			period_size = err >= 32 && err < 200000 ? err : 0;
-			break;
-		case 's':
-			err = atoi(optarg);
-			loop_sec = err >= 1 && err <= 100000 ? err : 30;
-			break;
-		case 'b':
-			block = 1;
-			break;
-		case 'p':
-			use_poll = 1;
-			break;
-		case 'e':
-			effect = 1;
-			break;
-		case 'n':
-			resample = 0;
-			break;
-		}
-	}
 
-	if (morehelp) {
-		help();
-		return 0;
-	}
 	err = snd_output_stdio_attach(&output, stdout, 0);
 	if (err < 0) {
 		printf("Output failed: %s\n", snd_strerror(err));
@@ -597,22 +430,6 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	/* initialize the filter sweep variables */
-	if (effect) {
-		fs = (float) rate;
-		BW = FILTER_BANDWIDTH;
-
-		lfo = 0;
-		dlfo = 2.*M_PI*FILTERSWEEP_LFO_FREQ/fs;
-
-		x[0] = (float*) malloc(channels*sizeof(float));		
-		x[1] = (float*) malloc(channels*sizeof(float));		
-		x[2] = (float*) malloc(channels*sizeof(float));		
-		y[0] = (float*) malloc(channels*sizeof(float));		
-		y[1] = (float*) malloc(channels*sizeof(float));		
-		y[2] = (float*) malloc(channels*sizeof(float));		
-	}
-			  
 	while (1) {
 		frames_in = frames_out = 0;
 		if (setparams(phandle, chandle, &latency) < 0)
@@ -658,8 +475,6 @@ int main(int argc, char *argv[])
 			if ((r = readbuf(chandle, buffer, latency, &frames_in, &in_max)) < 0)
 				ok = 0;
 			else {
-				if (effect)
-					applyeffect(buffer,r);
 			 	if (writebuf(phandle, buffer, r, &frames_out) < 0)
 					ok = 0;
 			}
