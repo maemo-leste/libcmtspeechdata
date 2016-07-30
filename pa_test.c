@@ -33,11 +33,11 @@ int main(int argc, char*argv[]) {
         .channels = 1
     };
     static const pa_buffer_attr attr = {
-      .fragsize = (uint32_t) 1024,
+      .fragsize = (uint32_t) -1,
       .maxlength = (uint32_t) -1,
-      .minreq = (uint32_t) 1024,
+      .minreq = (uint32_t) -1,
       .prebuf = (uint32_t) -1,
-      .tlength = (uint32_t) 1024,
+      .tlength = (uint32_t) -1,
       /* fragsize / tlength can be 4096 -> pulseaudio CPU drops from 33% CPU to 10%, but latency can be heard */
     };
     pa_simple *r = NULL;

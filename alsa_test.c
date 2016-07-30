@@ -44,9 +44,9 @@ int rate = 8000;
 int channels = 1;
 int buffer_size = 0;		/* auto */
 int period_size = 0;		/* auto */
-int latency_min = 32;		/* in frames / 2 */
+int latency_min = 640;		/* in frames / 2 */
 int latency_max = 2048;		/* in frames / 2 */
-int loop_sec = 30;		/* seconds */
+int loop_sec = 90;		/* seconds */
 int block = 0;			/* block mode */
 int use_poll = 0;
 int resample = 1;
@@ -435,6 +435,7 @@ int main(int argc, char *argv[])
 		if (setparams(phandle, chandle, &latency) < 0)
 			break;
 		showlatency(latency);
+#if 0	       
 		if ((err = snd_pcm_link(chandle, phandle)) < 0) {
 			printf("Streams link error: %s\n", snd_strerror(err));
 			exit(0);
@@ -451,7 +452,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "write error\n");
 			break;
 		}
-
+#endif
 		if ((err = snd_pcm_start(chandle)) < 0) {
 			printf("Go error: %s\n", snd_strerror(err));
 			exit(0);
