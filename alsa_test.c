@@ -33,15 +33,15 @@
 #include <sched.h>
 #include <errno.h>
 #include <getopt.h>
-#include "../include/asoundlib.h"
+#include <alsa/asoundlib.h>
 #include <sys/time.h>
 #include <math.h>
 
-char *pdevice = "hw:0,0";
-char *cdevice = "hw:0,0";
+char *pdevice = "plughw:0,0";
+char *cdevice = "plughw:0,0";
 snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
-int rate = 22050;
-int channels = 2;
+int rate = 8000;
+int channels = 1;
 int buffer_size = 0;		/* auto */
 int period_size = 0;		/* auto */
 int latency_min = 32;		/* in frames / 2 */
