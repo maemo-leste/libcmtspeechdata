@@ -444,7 +444,8 @@ int main(int argc, char *argv[])
 #if 1
 		if ((err = snd_pcm_link(chandle, phandle)) < 0) {
 			printf("Streams link error: %s\n", snd_strerror(err));
-			exit(0);
+			printf("...ignoring\n");
+			//exit(0);
 		}
 		if (snd_pcm_format_set_silence(format, buffer, latency*channels) < 0) {
 			fprintf(stderr, "silence error\n");
@@ -475,8 +476,8 @@ int main(int argc, char *argv[])
 
 		ok = 1;
 		in_max = 0;
+		printf("Processing sound\n");
 		while (ok && frames_in < loop_limit) {
-			printf("Looping\n");
 			if (use_poll) {
 				/* use poll to wait for next event */
 				snd_pcm_wait(chandle, 1000);
