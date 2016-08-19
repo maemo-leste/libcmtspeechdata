@@ -310,11 +310,11 @@ long write_bytes(struct test_ctx *ctx, void *buf, int len)
 static void start_sink(struct test_ctx *ctx)
 {
 	int err;
-	snd_pcm_hw_params_t *pt_params, *ct_params;	/* templates with rate, format and channels */
-	snd_pcm_hw_params_t *p_params, *c_params;
-	snd_pcm_sw_params_t *p_swparams, *c_swparams;
-	snd_pcm_uframes_t p_size, c_size, p_psize, c_psize;
-	unsigned int p_time, c_time;
+	snd_pcm_hw_params_t *pt_params;	/* templates with rate, format and channels */
+	snd_pcm_hw_params_t *p_params;
+	snd_pcm_sw_params_t *p_swparams;
+	snd_pcm_uframes_t p_size, p_psize;
+	unsigned int p_time;
 	unsigned int val;
 	int size = 1024;
 	int *bufsize = &size;
@@ -373,11 +373,11 @@ static void start_sink(struct test_ctx *ctx)
 static void start_source(struct test_ctx *ctx)
 {
 	int err;
-	snd_pcm_hw_params_t *pt_params, *ct_params;	/* templates with rate, format and channels */
-	snd_pcm_hw_params_t *p_params, *c_params;
-	snd_pcm_sw_params_t *p_swparams, *c_swparams;
-	snd_pcm_uframes_t p_size, c_size, p_psize, c_psize;
-	unsigned int p_time, c_time;
+	snd_pcm_hw_params_t *ct_params;	/* templates with rate, format and channels */
+	snd_pcm_hw_params_t *c_params;
+	snd_pcm_sw_params_t *c_swparams;
+	snd_pcm_uframes_t c_size, c_psize;
+	unsigned int c_time;
 	unsigned int val;
 	int size = 1024;
 	int *bufsize = &size;
