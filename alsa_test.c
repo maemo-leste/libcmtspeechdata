@@ -44,7 +44,7 @@ int rate = 8000;
 int channels = 1;
 int buffer_size = 0;		/* auto */
 int period_size = 0;		/* auto */
-int latency_min = 640;		/* in frames / 2 */
+int latency_min = 0;		/* in frames / 2 */
 int latency_max = 2048;		/* in frames / 2 */
 int loop_sec = 90;		/* seconds */
 int block = 0;			/* block mode */
@@ -198,13 +198,18 @@ int setparams(snd_pcm_t *phandle, snd_pcm_t *chandle, int *bufsize)
 	}
 
       __again:
-      	if (buffer_size > 0)
+	printf("Trying bufsize %d\n", *bufsize);
+      	if (buffer_size < 0) {
+		printf("bad buffer_size?\n");
       		return -1;
+	}
       	if (last_bufsize == *bufsize)
 		*bufsize += 4;
 	last_bufsize = *bufsize;
-	if (*bufsize > latency_max)
+	if (*bufsize > latency_max) {
+		printf("latency too high?\n");		
 		return -1;
+	}
       __set_it:
 	if ((err = setparams_bufsize(phandle, p_params, pt_params, *bufsize, "playback")) < 0) {
 		printf("Unable to set sw parameters for playback stream: %s\n", snd_strerror(err));
@@ -395,13 +400,11 @@ int main(int argc, char *argv[])
 {
 	snd_pcm_t *phandle, *chandle;
 	char *buffer;
-	int err, latency, morehelp;
+	int err, latency;
 	int ok;
 	snd_timestamp_t p_tstamp, c_tstamp;
 	ssize_t r;
 	size_t frames_in, frames_out, in_max;
-	int effect = 0;
-	morehelp = 0;
 
 	err = snd_output_stdio_attach(&output, stdout, 0);
 	if (err < 0) {
@@ -430,12 +433,15 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
+	printf("Sound ready\n");
 	while (1) {
 		frames_in = frames_out = 0;
-		if (setparams(phandle, chandle, &latency) < 0)
+		if (setparams(phandle, chandle, &latency) < 0) {
+			printf("Could not set latency %d\n", latency);
 			break;
+		}
 		showlatency(latency);
-#if 0	       
+#if 1
 		if ((err = snd_pcm_link(chandle, phandle)) < 0) {
 			printf("Streams link error: %s\n", snd_strerror(err));
 			exit(0);
@@ -453,6 +459,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 #endif
+		printf("Sound go\n");
 		if ((err = snd_pcm_start(chandle)) < 0) {
 			printf("Go error: %s\n", snd_strerror(err));
 			exit(0);
@@ -469,6 +476,7 @@ int main(int argc, char *argv[])
 		ok = 1;
 		in_max = 0;
 		while (ok && frames_in < loop_limit) {
+			printf("Looping\n");
 			if (use_poll) {
 				/* use poll to wait for next event */
 				snd_pcm_wait(chandle, 1000);
