@@ -286,7 +286,10 @@ long writebuf(snd_pcm_t *handle, char *buf, long len, size_t *frames)
 	long r;
 
 	while (len > 0) {
+		printf("writei: %d\n", len);
 		r = snd_pcm_writei(handle, buf, len);
+		printf("writei: ret %d\n", r);
+		
 		if (r == -EAGAIN)
 			continue;
 		// printf("write = %li\n", r);
