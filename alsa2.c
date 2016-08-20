@@ -30,7 +30,13 @@ int main(int argc, char *argv[])
 		char buf[LEN];
 		int j;
 		j = read_bytes(&ctx, buf, LEN);
+		if (j != LEN)
+			printf("read: only %d bytes\n");
 		j = write_bytes(&ctx, buf, LEN);
+		if (j != LEN)
+			printf("write: only %d bytes\n");
+		
+		usleep(100000);
 	}
 	stop_source(&ctx);
 	stop_sink(&ctx);

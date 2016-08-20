@@ -44,8 +44,8 @@ int rate = 8000;
 int channels = 1;
 int buffer_size = 0;		/* auto */
 int period_size = 0;		/* auto */
-int latency_min = 640;		/* in frames / 2 */
-int latency_max = 2048;		/* in frames / 2 */
+int latency_min = 4096;		/* in frames / 2 */
+int latency_max = 8192;		/* in frames / 2 */
 int loop_sec = 90;		/* seconds */
 int block = 0;			/* block mode */
 int use_poll = 0;
@@ -286,9 +286,9 @@ long writebuf(snd_pcm_t *handle, char *buf, long len, size_t *frames)
 	long r;
 
 	while (len > 0) {
-		printf("writei: %d\n", len);
+		//printf("writei: %d\n", len);
 		r = snd_pcm_writei(handle, buf, len);
-		printf("writei: ret %d\n", r);
+		//printf("writei: ret %d\n", r);
 		
 		if (r == -EAGAIN)
 			continue;
