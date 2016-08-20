@@ -22,6 +22,9 @@ int main(int argc, char *argv[])
 	snd_pcm_start(ctx.sink);	
 		
 //	printf("Preparing latency %d, writing %d\n", latency, LEN);
+	for (i=0; i<LEN; i++) {
+		buf[i] = i*30;
+	}
 	j = write_bytes(&ctx, buf, LEN);
 	j = write_bytes(&ctx, buf, LEN);
 	snd_pcm_start(ctx.source);
