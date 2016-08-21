@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
 		j = read_bytes(&ctx, buf, LEN);
 		if (j != LEN)
 		  	printf("read: only %d bytes\n", j);
+		snd_pcm_start(ctx.sink);	
 		j = write_bytes(&ctx, buf, LEN);
 		if (j != LEN)
 		  	printf("write: only %d bytes\n", j);
