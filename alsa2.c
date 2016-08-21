@@ -26,7 +26,12 @@ int main(int argc, char *argv[])
 		buf[i] = i*30;
 	}
 	j = write_bytes(&ctx, buf, LEN);
+	if (j != LEN)
+		printf("write: only %d bytes\n", j);
 	j = write_bytes(&ctx, buf, LEN);
+	if (j != LEN)
+		printf("write: only %d bytes\n", j);
+	
 	snd_pcm_start(ctx.source);
 	
 	for (i = 0; i < 10000; i++) {
@@ -34,10 +39,10 @@ int main(int argc, char *argv[])
 		int j;
 		j = read_bytes(&ctx, buf, LEN);
 		if (j != LEN)
-			printf("read: only %d bytes\n");
+		  	printf("read: only %d bytes\n", j);
 		j = write_bytes(&ctx, buf, LEN);
 		if (j != LEN)
-			printf("write: only %d bytes\n");
+		  	printf("write: only %d bytes\n", j);
 		
 		usleep(100000);
 	}

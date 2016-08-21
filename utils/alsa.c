@@ -278,7 +278,8 @@ long read_bytes(struct test_ctx *ctx, void *buf, int len)
 {
 	size_t a = 0, b = 0;
 
-	return readbuf(ctx->source, buf, len, &a, &b);
+	readbuf(ctx->source, buf, len, &a, &b);
+	return a*4;
 }
 
 long writebuf(snd_pcm_t *handle, char *buf, long len, size_t *frames)
@@ -307,7 +308,8 @@ long write_bytes(struct test_ctx *ctx, void *buf, int len)
 {
 	size_t a = 0;
 
-	return writebuf(ctx->sink, buf, len, &a);
+	writebuf(ctx->sink, buf, len, &a);
+	return a*4;
 }
 
 static void start_sink(struct test_ctx *ctx)
