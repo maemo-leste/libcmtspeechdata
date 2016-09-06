@@ -55,7 +55,9 @@
 #include <pulse/simple.h>
 #include <pulse/error.h>
 
-#include "alsa.c"
+#ifndef PULSE
+#include <alsa/asoundlib.h>
+#endif
 
 struct test_ctx {
 	DBusConnection* dbus_conn;
@@ -74,6 +76,8 @@ struct test_ctx {
 	int latency;
 	int data_through;
 };
+
+#include "alsa.c"
 
 #define PREFIX "cmtspeech_ofono_test: "
 
