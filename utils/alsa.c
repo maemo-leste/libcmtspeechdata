@@ -246,6 +246,7 @@ long readbuf(snd_pcm_t *handle, char *buf, long len, size_t *frames, size_t *max
 {
 	long r;
 
+	snd_pcm_start(handle);
 	if (!block) {
 		do {
 			r = snd_pcm_readi(handle, buf, len);
@@ -285,6 +286,8 @@ long read_bytes(struct test_ctx *ctx, void *buf, int len)
 long writebuf(snd_pcm_t *handle, char *buf, long len, size_t *frames)
 {
 	long r;
+
+	snd_pcm_start(handle);
 
 	while (len > 0) {
 		//printf("writei: %d\n", len);

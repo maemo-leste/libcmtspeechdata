@@ -516,11 +516,11 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 			break;
 
 		memset(ulbuf->payload, 0, ulbuf->pcount);
+		printf("readbuf: %d bytes\n", ulbuf->payload);
 		error = readbuf(ctx->source, ulbuf->payload, ctx->latency, &num, &ulbuf->pcount);
 		if (error) {
 			fprintf(stderr, "error reading from source (%d), error %s\n", ulbuf->pcount,
 				pa_strerror(error));
-			break;
 		}
 
 		ctx->data_through += ulbuf->pcount;
@@ -549,6 +549,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 		exit(1);
 	}
 	int cnt = dlbuf->pcount;
+	printf("Writing : %d bytes\n", dlbuf->payload);
 	num = writebuf(ctx->sink, dlbuf->payload, ctx->latency, &cnt);
 	if (num < 0) {
 		fprintf(stderr, "Error writing to sink, %d, error %s\n", dlbuf->pcount, pa_strerror(error));

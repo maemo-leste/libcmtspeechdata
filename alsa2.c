@@ -19,8 +19,6 @@ int main(int argc, char *argv[])
 
 	int i;
 
-	snd_pcm_start(ctx.sink);	
-		
 #if 0
 //	printf("Preparing latency %d, writing %d\n", latency, LEN);
 	for (i=0; i<LEN; i++) {
@@ -39,11 +37,9 @@ int main(int argc, char *argv[])
 	for (i = 0; i < 10000; i++) {
 		char buf[LEN];
 		int j;
-		snd_pcm_start(ctx.source);
 		j = read_bytes(&ctx, buf, LEN);
 		if (j != LEN*4)
 		  	printf("read: only %d bytes\n", j);
-		snd_pcm_start(ctx.sink);	
 		j = write_bytes(&ctx, buf, LEN);
 		if (j != LEN*4)
 		  	printf("write: only %d bytes\n", j);
