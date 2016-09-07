@@ -1,3 +1,4 @@
+/* -*- c-file-style: "linux" -*- */
 /*
  * This file is part of libcmtspeechdata.
  *
@@ -54,18 +55,33 @@
 #include <pulse/simple.h>
 #include <pulse/error.h>
 
+#ifndef PULSE
+#include <alsa/asoundlib.h>
+#endif
 
 struct test_ctx {
-  DBusConnection* dbus_conn;
-  int dbus_fd;
-  DBusWatch *dbus_watch;
-  bool call_server_status;
-  int verbose;
-  cmtspeech_t *cmtspeech;
-  pa_simple *source;
-  pa_simple *sink;
-  int data_through;
+	DBusConnection* dbus_conn;
+	int dbus_fd;
+	DBusWatch *dbus_watch;
+	bool call_server_status;
+	int verbose;
+	cmtspeech_t *cmtspeech;
+#ifndef PULSE
+	snd_pcm_t *source;
+	snd_pcm_t *sink;
+#else
+	pa_simple *source;
+	pa_simple *sink;
+#endif	
+	int latency;
+	int data_through;
 };
+
+#ifndef PULSE
+#include "alsa.c"
+#else
+#include "pulse.c"
+#endif
 
 #define PREFIX "cmtspeech_ofono_test: "
 
@@ -194,6 +210,7 @@ static void test_dbus_release(struct test_ctx *ctx)
   }
 }
 
+#ifdef PULSE
 #if 0
 static void flush_input(struct test_ctx *ctx)
 {
@@ -222,12 +239,12 @@ static const pa_sample_spec ss = {
 	.channels = 2
 };
 static const pa_buffer_attr pa_attr = {
-      .fragsize = (uint32_t) 1024,
-      .maxlength = (uint32_t) -1,
-      .minreq = (uint32_t) 1024,
-      .prebuf = (uint32_t) -1,
-      .tlength = (uint32_t) 1024,
-      /* fragsize / tlength can be 4096 -> pulseaudio CPU drops from 33% CPU to 10%, but latency can be heard */
+	.fragsize = (uint32_t) 1024,
+	.maxlength = (uint32_t)1,
+	.minreq = (uint32_t) 1024,
+	.prebuf = (uint32_t)1,
+	.tlength = (uint32_t) 1024,
+	/* fragsize / tlength can be 4096> pulseaudio CPU drops from 33% CPU to 10%, but latency can be heard */
 };
 
 static void start_sink(struct test_ctx *ctx)
@@ -254,7 +271,7 @@ static void stop_source(struct test_ctx *ctx)
 {
 	if (ctx->source)
 		pa_simple_free(ctx->source);
-	ctx->source = NULL;    
+	ctx->source = NULL;
 }
 
 static void stop_sink(struct test_ctx *ctx)
@@ -264,11 +281,15 @@ static void stop_sink(struct test_ctx *ctx)
 	ctx->sink = NULL;
 }
 
+#else
+#endif
+
 static void report_sound(struct test_ctx *ctx)
 {
 	pa_usec_t latency_p = -999999, latency_r = -999999;
 	int error;
 
+#ifdef FIXME
 	if (ctx->sink)
 		if ((latency_p = pa_simple_get_latency(ctx->sink, &error)) == (pa_usec_t) -1) {
 			fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
@@ -282,6 +303,7 @@ static void report_sound(struct test_ctx *ctx)
 		}
 
 	fprintf(stderr, "playback %10.0f usec, record %10.0f usec   \n", (float)latency_p, (float)latency_r);
+#endif
 }
 
 static bool test_handle_dbus_ofono(struct test_ctx *ctx, DBusMessage *msg)
@@ -406,7 +428,7 @@ static void priv_parse_options(struct test_ctx *ctx, int argc, char *argv[])
 
   assert(ctx);
 
-  while (res = getopt_long(argc, argv, "hva", opt_tbl, &opt_index), res != -1) {
+  while (res = getopt_long(argc, argv, "hvat", opt_tbl, &opt_index), res != -1) {
     switch (res)
       {
 
@@ -417,9 +439,6 @@ static void priv_parse_options(struct test_ctx *ctx, int argc, char *argv[])
 
       case 'a':
 	fprintf(stderr, "Enabling audio path\n");
-	ctx->source = 0;
-	ctx->sink = 0;
-	ctx->data_through = 0;
 #if 0
 	{
 	  int flags = fcntl(ctx->source_fd, F_GETFL, 0);
@@ -427,6 +446,31 @@ static void priv_parse_options(struct test_ctx *ctx, int argc, char *argv[])
 	}
 #endif
 	break;
+
+      case 't':
+#ifndef PULSE
+	      printf("opening streams\n"); fflush(stdout);	      
+	      start_sink(ctx);
+	      printf("sink ok\n"); fflush(stdout);	      	      
+	      start_source(ctx);
+	      printf("start: %d", snd_pcm_start(ctx->source));
+	      printf("streams open\n"); fflush(stdout);
+	      while (1) {
+		      int len = 128;
+		      char buf[len];
+		      long res;
+		      int i;
+
+		      for (i=0; i<len; i++)
+			      buf[i] = i*5;
+#if 0
+		      res = read_bytes(ctx, buf, len);
+		      printf("read: %d\n", res);
+#endif
+		      res = write_bytes(ctx, buf, len);
+		      printf("write: %d\n", res);		      
+	      }
+#endif
 
       case 'h':
       default:
@@ -448,7 +492,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 
 	while (ctx->source && active_ul) {
 		pa_usec_t latency_r;
-		
+#ifdef FIXME
 		if ((latency_r = pa_simple_get_latency(ctx->source, &error)) == (pa_usec_t) -1) {
 			fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
 			exit(1);
@@ -461,8 +505,8 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 
 		if (latency_r > 1000000) {
 		  fprintf(stderr, "...flush latency (%d)\n", latency_r);
-		  num = pa_simple_read(ctx->source, scratch, 320, &error);
-		  if (num < 0){
+		  errror = readbuf(ctx->source, scratch, fixme_latency, &num);
+		  if (error < 0){
 		    fprintf(stderr, __FILE__": error during flushing: %s\n", pa_strerror(error));
 		    exit(1);
 		  }
@@ -472,17 +516,17 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 		    exit(1);
 		  }
 		}
-
+#endif
 		res = cmtspeech_ul_buffer_acquire(ctx->cmtspeech, &ulbuf);
 		if (res != 0)
 			break;
 
 		memset(ulbuf->payload, 0, ulbuf->pcount);
-		num = pa_simple_read(ctx->source, ulbuf->payload, ulbuf->pcount, &error);
-		if (num < 0) {
+		printf("readbuf: %d bytes\n", ulbuf->payload);
+		error = readbuf(ctx->source, ulbuf->payload, ctx->latency, &num, &ulbuf->pcount);
+		if (error) {
 			fprintf(stderr, "error reading from source (%d), error %s\n", ulbuf->pcount,
 				pa_strerror(error));
-			break;
 		}
 
 		ctx->data_through += ulbuf->pcount;
@@ -510,7 +554,9 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 		fprintf(stderr, PREFIX "have packet but no sink?.\n");
 		exit(1);
 	}
-	num = pa_simple_write(ctx->sink, dlbuf->payload, dlbuf->pcount, &error);
+	int cnt = dlbuf->pcount;
+	printf("Writing : %d bytes\n", dlbuf->payload);
+	num = writebuf(ctx->sink, dlbuf->payload, ctx->latency, &cnt);
 	if (num < 0) {
 		fprintf(stderr, "Error writing to sink, %d, error %s\n", dlbuf->pcount, pa_strerror(error));
 	}
@@ -655,10 +701,15 @@ int main(int argc, char *argv[])
   fprintf(stderr, "NFS sucks, version 0.0.1\n");
   priv_setup_signals();
 
+  snd_init();
+
   ctx->dbus_conn = NULL;
   ctx->dbus_fd = -1;
   ctx->dbus_watch = NULL;
   ctx->verbose = 0;
+	ctx->source = 0;
+	ctx->sink = 0;
+	ctx->data_through = 0;
 
   priv_parse_options(ctx, argc, argv);
 
