@@ -9,9 +9,6 @@ struct test_ctx ctx;
 
 int main(int argc, char *argv[])
 {
-	char buf[LEN];
-	int j;
-	
 	snd_init();
 	start_sink(&ctx);
 	sleep(2);
@@ -20,6 +17,11 @@ int main(int argc, char *argv[])
 	int i;
 
 #if 0
+	{
+	char buf[LEN];
+	int j;
+	
+
 //	printf("Preparing latency %d, writing %d\n", latency, LEN);
 	for (i=0; i<LEN; i++) {
 		buf[i] = i*30;
@@ -30,6 +32,7 @@ int main(int argc, char *argv[])
 	j = write_bytes(&ctx, buf, LEN);
 	if (j != LEN)
 		printf("write: only %d bytes\n", j);
+	}
 #endif
 	
 	snd_pcm_start(ctx.source);
