@@ -255,10 +255,10 @@ static void start_sink(struct test_ctx *ctx)
 
 static void start_source(struct test_ctx *ctx)
 {
+	int error;
 	/* Create the recording stream */
 	if (!(ctx->source = pa_simple_new(NULL, "libcmtspeech_ofono", PA_STREAM_RECORD, NULL, "record", &ss, NULL, &pa_attr, &error))) {
-		fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_str
-			error(error));
+		fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
 		exit(1);
 	}
 }
