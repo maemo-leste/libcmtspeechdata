@@ -77,7 +77,11 @@ struct test_ctx {
 	int data_through;
 };
 
+#ifndef PULSE
 #include "alsa.c"
+#else
+#include "pulse.c"
+#endif
 
 #define PREFIX "cmtspeech_ofono_test: "
 

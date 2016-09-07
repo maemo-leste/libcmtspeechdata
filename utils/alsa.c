@@ -1,6 +1,5 @@
 /* -*- linux-c -*- */
 
-#ifndef PULSE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -469,4 +468,3 @@ static void snd_init(void)
 	setscheduler();
 }
 
-#endif
