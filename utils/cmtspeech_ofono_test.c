@@ -444,6 +444,7 @@ static void priv_parse_options(struct test_ctx *ctx, int argc, char *argv[])
 	break;
 
       case 't':
+#ifndef PULSE
 	      printf("opening streams\n"); fflush(stdout);	      
 	      start_sink(ctx);
 	      printf("sink ok\n"); fflush(stdout);	      	      
@@ -465,6 +466,7 @@ static void priv_parse_options(struct test_ctx *ctx, int argc, char *argv[])
 		      res = write_bytes(ctx, buf, len);
 		      printf("write: %d\n", res);		      
 	      }
+#endif
 
       case 'h':
       default:
@@ -683,111 +685,6 @@ static int test_mainloop(struct test_ctx *ctx)
   }
 
   return res;
-}
-
-int main_disabled(int argc, char *argv[])
-{
-	snd_pcm_t *phandle, *chandle;
-	char *buffer;
-	int err, latency, morehelp;
-	int ok;
-	snd_timestamp_t p_tstamp, c_tstamp;
-	ssize_t r;
-	size_t frames_in, frames_out, in_max;
-	int effect = 0;
-	morehelp = 0;
-
-	loop_limit = loop_sec * rate;
-	latency = latency_min - 4;
-	buffer = malloc((latency_max * snd_pcm_format_width(format) / 8) * 2);
-
-	printf("Playback device is %s\n", pdevice);
-	printf("Capture device is %s\n", cdevice);
-	printf("Parameters are %iHz, %s, %i channels, %s mode\n", rate, snd_pcm_format_name(format), channels, block ? "blocking" : "non-blocking");
-	printf("Poll mode: %s\n", use_poll ? "yes" : "no");
-	printf("Loop limit is %li frames, minimum latency = %i, maximum latency = %i\n", loop_limit, latency_min * 2, latency_max * 2);
-
-	while (1) {
-		frames_in = frames_out = 0;
-		showlatency(latency);
-		if ((err = snd_pcm_link(chandle, phandle)) < 0) {
-			printf("Streams link error: %s\n", snd_strerror(err));
-			exit(0);
-		}
-		if (snd_pcm_format_set_silence(format, buffer, latency*channels) < 0) {
-			fprintf(stderr, "silence error\n");
-			break;
-		}
-		if (writebuf(phandle, buffer, latency, &frames_out) < 0) {
-			fprintf(stderr, "write error\n");
-			break;
-		}
-		if (writebuf(phandle, buffer, latency, &frames_out) < 0) {
-			fprintf(stderr, "write error\n");
-			break;
-		}
-
-		if ((err = snd_pcm_start(chandle)) < 0) {
-			printf("Go error: %s\n", snd_strerror(err));
-			exit(0);
-		}
-		gettimestamp(phandle, &p_tstamp);
-		gettimestamp(chandle, &c_tstamp);
-#if 0
-		printf("Playback:\n");
-		showstat(phandle, frames_out);
-		printf("Capture:\n");
-		showstat(chandle, frames_in);
-#endif
-
-		ok = 1;
-		in_max = 0;
-		while (ok && frames_in < loop_limit) {
-			if (use_poll) {
-				/* use poll to wait for next event */
-				snd_pcm_wait(chandle, 1000);
-			}
-			if ((r = readbuf(chandle, buffer, latency, &frames_in, &in_max)) < 0)
-				ok = 0;
-			else {
-			 	if (writebuf(phandle, buffer, r, &frames_out) < 0)
-					ok = 0;
-			}
-		}
-		if (ok)
-			printf("Success\n");
-		else
-			printf("Failure\n");
-		printf("Playback:\n");
-		showstat(phandle, frames_out);
-		printf("Capture:\n");
-		showstat(chandle, frames_in);
-		showinmax(in_max);
-		if (p_tstamp.tv_sec == p_tstamp.tv_sec &&
-		    p_tstamp.tv_usec == c_tstamp.tv_usec)
-			printf("Hardware sync\n");
-		snd_pcm_drop(chandle);
-		snd_pcm_nonblock(phandle, 0);
-		snd_pcm_drain(phandle);
-		snd_pcm_nonblock(phandle, !block ? 1 : 0);
-		if (ok) {
-#if 1
-			printf("Playback time = %li.%i, Record time = %li.%i, diff = %li\n",
-			       p_tstamp.tv_sec,
-			       (int)p_tstamp.tv_usec,
-			       c_tstamp.tv_sec,
-			       (int)c_tstamp.tv_usec,
-			       timediff(p_tstamp, c_tstamp));
-#endif
-			break;
-		}
-		snd_pcm_unlink(chandle);
-		snd_pcm_hw_free(phandle);
-		snd_pcm_hw_free(chandle);
-	}
-	snd_pcm_close(phandle);
-	snd_pcm_close(chandle);
-	return 0;
 }
 
 int main(int argc, char *argv[])
