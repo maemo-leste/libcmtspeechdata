@@ -75,6 +75,8 @@ struct test_ctx {
 #endif	
 	int latency;
 	int data_through;
+
+	int source_cc, sink_cc;
 };
 
 #ifndef PULSE
@@ -240,9 +242,9 @@ static const pa_sample_spec ss = {
 };
 static const pa_buffer_attr pa_attr = {
 	.fragsize = (uint32_t) 1024,
-	.maxlength = (uint32_t)1,
+	.maxlength = (uint32_t) -1,
 	.minreq = (uint32_t) 1024,
-	.prebuf = (uint32_t)1,
+	.prebuf = (uint32_t) -1,
 	.tlength = (uint32_t) 1024,
 	/* fragsize / tlength can be 4096> pulseaudio CPU drops from 33% CPU to 10%, but latency can be heard */
 };
@@ -289,7 +291,7 @@ static void report_sound(struct test_ctx *ctx)
 	pa_usec_t latency_p = -999999, latency_r = -999999;
 	int error;
 
-#ifdef FIXME
+#ifdef PULSE
 	if (ctx->sink)
 		if ((latency_p = pa_simple_get_latency(ctx->sink, &error)) == (pa_usec_t) -1) {
 			fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
@@ -492,7 +494,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 
 	while (ctx->source && active_ul) {
 		pa_usec_t latency_r;
-#ifdef FIXME
+#ifdef PULSE
 		if ((latency_r = pa_simple_get_latency(ctx->source, &error)) == (pa_usec_t) -1) {
 			fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
 			exit(1);
@@ -504,8 +506,9 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 		}
 
 		if (latency_r > 1000000) {
+			int scratch_int;
 		  fprintf(stderr, "...flush latency (%d)\n", latency_r);
-		  errror = readbuf(ctx->source, scratch, fixme_latency, &num);
+		  error = readbuf(ctx->source, scratch, ctx->latency, &num, &scratch_int);
 		  if (error < 0){
 		    fprintf(stderr, __FILE__": error during flushing: %s\n", pa_strerror(error));
 		    exit(1);
@@ -524,6 +527,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 		memset(ulbuf->payload, 0, ulbuf->pcount);
 		printf("readbuf: %d bytes\n", ulbuf->payload);
 		error = readbuf(ctx->source, ulbuf->payload, ctx->latency, &num, &ulbuf->pcount);
+		write(ctx->source_cc, ulbuf->payload, num);
 		if (error) {
 			fprintf(stderr, "error reading from source (%d), error %s\n", ulbuf->pcount,
 				pa_strerror(error));
@@ -557,6 +561,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 	int cnt = dlbuf->pcount;
 	printf("Writing : %d bytes\n", dlbuf->payload);
 	num = writebuf(ctx->sink, dlbuf->payload, ctx->latency, &cnt);
+	write(ctx->sink_cc, dlbuf->payload, dlbuf->pcount);
 	if (num < 0) {
 		fprintf(stderr, "Error writing to sink, %d, error %s\n", dlbuf->pcount, pa_strerror(error));
 	}
@@ -707,9 +712,17 @@ int main(int argc, char *argv[])
   ctx->dbus_fd = -1;
   ctx->dbus_watch = NULL;
   ctx->verbose = 0;
-	ctx->source = 0;
-	ctx->sink = 0;
-	ctx->data_through = 0;
+  ctx->source = 0;
+  ctx->sink = 0;
+  ctx->data_through = 0;
+  ctx->source_cc = -1;
+  ctx->sink_cc = -1;
+
+#define RECORD
+#ifdef RECORD
+  ctx->source_cc = open("/data/tmp/source.raw", O_CREAT | O_WRONLY, 0600);
+  ctx->sink_cc = open("/data/tmp/sink.raw", O_CREAT | O_WRONLY, 0600);
+#endif
 
   priv_parse_options(ctx, argc, argv);
 
