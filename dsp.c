@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
       }
 
     if (stereo != 1) {
-      printf("The device doesn't support stereo mode.\n");
+      printf("The device doesn't support selected mode.\n");
     }
   }
 
@@ -79,6 +79,17 @@ int main(int argc, char *argv[])
 
     if (speed != 8000) {
       printf("The device doesn't support the requested speed.\n");
-    } 
+    }
+    printf("The sample rate is %d\n", speed);
+  }
+
+  {
+#define SIZE 1024
+    char buf[SIZE];
+
+    while (1) {
+      read(audio_fd, buf, SIZE);
+      write(audio_fd, buf, SIZE);
+    }
   }
 }
