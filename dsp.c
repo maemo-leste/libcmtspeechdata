@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/soundcard.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /*
  * Mandatory variables.
@@ -23,7 +25,10 @@ int main(int argc, char *argv[])
   if ((audio_fd = open(DEVICE_NAME, O_RDWR, 0)) == -1) { /* Opening device failed */  
       perror(DEVICE_NAME);  
       exit(1);  
-    } 
+  } 
+  if (ioctl(audio_fd, SNDCTL_DSP_SETDUPLEX, 0) == -1) {
+    perror("Can't do FD\n");
+  }
 
   /*
     http://www.4front-tech.com/pguide/audio.html#speed
@@ -84,7 +89,7 @@ int main(int argc, char *argv[])
   }
 
   {
-#define SIZE 128
+#define SIZE 20480
     char buf[SIZE];
 
     while (1) {
