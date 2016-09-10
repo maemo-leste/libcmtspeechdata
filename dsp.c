@@ -13,7 +13,7 @@
 /*
  * Mandatory variables.
  */
-#define SSIZE 409600
+#define SSIZE 10240
 int audio_fd;  
 char silence[SSIZE];
 
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 
   {
     //    unsigned int frag = 0x7fff000a;/* Unlimited number of 1k fragments */
-    unsigned int frag = 0x7fff000f;
+    unsigned int frag = 0x7fff000c;
 
     if (ioctl (audio_fd, SNDCTL_DSP_SETFRAGMENT, &frag) == -1) {
       perror ("SNDCTL_DSP_SETFRAGMENT");
