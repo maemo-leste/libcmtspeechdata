@@ -19,6 +19,25 @@ char silence[SSIZE];
 
 #define DEVICE_NAME "/dev/dsp"
 
+typedef int16_t  s16;
+
+void to_mono(s16 *b1, s16 *b2, int size)
+{
+  int i;
+  for (i = 0; i < size/2; i++) {
+    b2[i] = b1[2*i] + b1[2*i+1];
+  }
+}
+
+void to_stereo(s16 *b1, s16 *b2, int size)
+{
+  int i;
+  for (i = 0; i < size; i++) {
+    b2[2*i] = b1[i];
+    b2[2*i+1] = b1[i];
+  }
+}
+
 int main(int argc, char *argv[]) 
 {
 
@@ -121,7 +140,7 @@ int main(int argc, char *argv[])
 
   {
 #define SIZE 128
-    char buf[SIZE];
+    s16 buf[SIZE], buf2[SIZE];
     int count = 0;
 
     while (1) {
@@ -137,6 +156,9 @@ int main(int argc, char *argv[])
 	write(audio_fd, silence, SSIZE);
       }
       count++;
+
+      to_mono(buf, buf2, SIZE);
+      to_stereo(buf2, buf, SIZE/2);
 
       {
 	int delay;
