@@ -13,7 +13,7 @@
 /*
  * Mandatory variables.
  */
-#define SSIZE 10240
+#define SSIZE 4096
 int audio_fd;  
 char silence[SSIZE];
 
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
     
 
   {
-#define SIZE 1024
+#define SIZE 128
     char buf[SIZE];
     int count = 0;
 
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 	}
 
 #if 1
-	printf ("\rDelay=%5.3g msec\n", t);
+	printf ("\rDelay=%5.3g msec", t);
 	fflush (stdout);
 #endif
       }
