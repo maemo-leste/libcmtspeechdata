@@ -84,12 +84,18 @@ int main(int argc, char *argv[])
   }
 
   {
-#define SIZE 1024
+#define SIZE 128
     char buf[SIZE];
 
     while (1) {
-      read(audio_fd, buf, SIZE);
-      write(audio_fd, buf, SIZE);
+      int len = read(audio_fd, buf, SIZE);
+      if (len < 0) {
+	printf("Error reading DSP: %m\n");
+	continue;
+      }
+      if (len != SIZE)
+	printf("Short read: %d\n", len);
+      write(audio_fd, buf, len);
     }
   }
 }
