@@ -55,7 +55,7 @@
 #include <pulse/simple.h>
 #include <pulse/error.h>
 
-#ifndef PULSE
+#ifdef ALSA
 #include <alsa/asoundlib.h>
 #endif
 
@@ -66,10 +66,11 @@ struct test_ctx {
 	bool call_server_status;
 	int verbose;
 	cmtspeech_t *cmtspeech;
-#ifndef PULSE
+#ifdef ALSA
 	snd_pcm_t *source;
 	snd_pcm_t *sink;
-#else
+#endif
+#ifdef PULSE
 	pa_simple *source;
 	pa_simple *sink;
 #endif	
@@ -79,9 +80,11 @@ struct test_ctx {
 	int source_cc, sink_cc;
 };
 
-#ifndef PULSE
+
+#ifdef ALSA
 #include "alsa.c"
-#else
+#endif
+#ifdef PULSE
 #include "pulse.c"
 #endif
 
@@ -450,7 +453,7 @@ static void priv_parse_options(struct test_ctx *ctx, int argc, char *argv[])
 	break;
 
       case 't':
-#ifndef PULSE
+#ifdef ALSA
 	      printf("opening streams\n"); fflush(stdout);	      
 	      start_sink(ctx);
 	      printf("sink ok\n"); fflush(stdout);	      	      
