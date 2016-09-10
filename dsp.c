@@ -13,9 +13,9 @@
 /*
  * Mandatory variables.
  */
-#define BUF_SIZE    4096
+#define SSIZE 409600
 int audio_fd;  
-unsigned char audio_buffer[BUF_SIZE];
+char silence[SSIZE];
 
 #define DEVICE_NAME "/dev/dsp"
 
@@ -26,8 +26,40 @@ int main(int argc, char *argv[])
       perror(DEVICE_NAME);  
       exit(1);  
   } 
+
+
+  {
+    int devcaps;
+
+    if (ioctl (audio_fd, SNDCTL_DSP_GETCAPS, &devcaps) == -1) {
+      perror ("SNDCTL_DSP_GETCAPS");
+      exit (-1);
+    }
+#if 0
+    if (!(devcaps & PCM_CAP_DUPLEX))
+      {
+	fprintf (stderr,
+		 "%s doesn't support one device based full duplex scheme\n",
+		 dspname);
+	fprintf (stderr, "Please use the two device scheme.\n");
+	exit (-1);
+      }
+#endif
+  }
+
+
   if (ioctl(audio_fd, SNDCTL_DSP_SETDUPLEX, 0) == -1) {
     perror("Can't do FD\n");
+  }
+
+  {
+    //    unsigned int frag = 0x7fff000a;/* Unlimited number of 1k fragments */
+    unsigned int frag = 0x7fff000f;
+
+    if (ioctl (audio_fd, SNDCTL_DSP_SETFRAGMENT, &frag) == -1) {
+      perror ("SNDCTL_DSP_SETFRAGMENT");
+      exit (-1);
+    }
   }
 
   /*
@@ -75,8 +107,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  {
-    int speed = 8000;
+  int speed = 8000;
     if (ioctl(audio_fd, SNDCTL_DSP_SPEED, &speed)==-1) { /* Fatal error */  
 	perror("SNDCTL_DSP_SPEED");  
 	exit(4);  
@@ -86,11 +117,12 @@ int main(int argc, char *argv[])
       printf("The device doesn't support the requested speed.\n");
     }
     printf("The sample rate is %d\n", speed);
-  }
+    
 
   {
-#define SIZE 20480
+#define SIZE 1024
     char buf[SIZE];
+    int count = 0;
 
     while (1) {
       int len = read(audio_fd, buf, SIZE);
@@ -100,7 +132,33 @@ int main(int argc, char *argv[])
       }
       if (len != SIZE)
 	printf("Short read: %d\n", len);
-      write(audio_fd, buf, len);
+      if (!count) {
+	printf("priming\n");
+	write(audio_fd, silence, SSIZE);
+      }
+      count++;
+
+      {
+	int delay;
+	float t;
+	if (ioctl(audio_fd, SNDCTL_DSP_GETODELAY, &delay) == -1)
+	  delay = 0;
+
+	delay /= 4;/* Get number of 16 bit stereo samples */
+
+	t = (float) delay / (float) speed; /* Get delay in seconds */
+
+	t *= 1000.0;/* Convert delay to milliseconds */
+
+	if (len != write(audio_fd, buf, len)) {
+	  printf("Short write\n");
+	}
+
+#if 1
+	printf ("\rDelay=%5.3g msec\n", t);
+	fflush (stdout);
+#endif
+      }
     }
   }
 }
