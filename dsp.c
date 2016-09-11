@@ -1,5 +1,10 @@
 /* -*- linux-c -*- */
 
+struct test_ctx {
+	int source;
+	int sink;
+};
+
 #include "utils/dsp.c"
 
 /*
