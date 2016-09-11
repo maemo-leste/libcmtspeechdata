@@ -10,6 +10,7 @@
 #include <sys/ioctl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 typedef int16_t s16;
 
@@ -182,4 +183,9 @@ static void stop_sink(struct test_ctx *ctx)
 void audio_init(struct test_ctx *ctx)
 {
   ctx->source = ctx->sink = audio_open(4000);
+}
+
+static char *audio_strerror(void)
+{
+  return strerror(errno);
 }

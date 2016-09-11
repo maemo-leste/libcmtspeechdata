@@ -465,7 +465,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 		num = audio_read(ctx->source, ulbuf->payload, ulbuf->pcount);
 		if (num < 0) {
 			fprintf(stderr, "error reading from source (%d), error %s\n", ulbuf->pcount,
-				pa_strerror(error));
+				audio_strerror());
 		} else {
 			ulbuf->pcount = num;
 		}
@@ -506,7 +506,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 	num = audio_write(ctx->sink, dlbuf->payload, dlbuf->pcount);
 	write(ctx->sink_cc, dlbuf->payload, dlbuf->pcount);
 	if (num < 0) {
-		fprintf(stderr, "Error writing to sink, %d, error %s\n", dlbuf->pcount, pa_strerror(error));
+		fprintf(stderr, "Error writing to sink, %d, error %s\n", dlbuf->pcount, audio_strerror());
 	}
 	report_sound(ctx);	
 	res = cmtspeech_dl_buffer_release(ctx->cmtspeech, dlbuf);
