@@ -1,14 +1,6 @@
 /* -*- linux-c -*- */
 
-/* 
- * Standard includes
- */
-
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/soundcard.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "utils/dsp.c"
 
 /*
  * Mandatory variables.

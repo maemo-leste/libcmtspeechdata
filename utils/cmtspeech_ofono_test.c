@@ -642,8 +642,6 @@ int main(int argc, char *argv[])
   fprintf(stderr, "NFS sucks, version 0.0.1\n");
   priv_setup_signals();
 
-  snd_init();
-
   ctx->dbus_conn = NULL;
   ctx->dbus_fd = -1;
   ctx->dbus_watch = NULL;
@@ -653,6 +651,8 @@ int main(int argc, char *argv[])
   ctx->data_through = 0;
   ctx->source_cc = -1;
   ctx->sink_cc = -1;
+
+  audio_init(ctx);
 
 #define RECORD
 #ifdef RECORD
