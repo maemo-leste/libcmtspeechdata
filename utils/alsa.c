@@ -278,7 +278,7 @@ long audio_read(snd_pcm_t *source, void *buf, int len)
 {
 	size_t a = 0, b = 0;
 
-	readbuf(source, buf, len, &a, &b);
+	readbuf(source, buf, len/4, &a, &b);
 	return a*4;
 }
 
@@ -306,11 +306,11 @@ long writebuf(snd_pcm_t *handle, char *buf, long len, size_t *frames)
 	return 0;
 }
 
-long write_bytes(snd_pcm_t *sink, void *buf, int len)
+long audio_write(snd_pcm_t *sink, void *buf, int len)
 {
 	size_t a = 0;
 
-	writebuf(sink, buf, len, &a);
+	writebuf(sink, buf, len/4, &a);
 	return a*4;
 }
 

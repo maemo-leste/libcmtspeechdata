@@ -21,7 +21,7 @@ gcc $(pkg-config --cflags --libs libpulse-simple) pa_test.c -o pa_test
 # aptitude install libasound-dev
 gcc -g -Wall alsa_test.c -o alsa_test -lasound -lm
 
-#gcc -g -Wall alsa2.c -o alsa2 -lasound -lm
+gcc -g -Wall alsa2.c -o alsa2 -lasound -lm
 
 #gcc -g -Wall dsp2.c -o dsp2
 

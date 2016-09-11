@@ -9,14 +9,14 @@ struct test_ctx ctx;
 
 int main(int argc, char *argv[])
 {
-	snd_init();
+	audio_init(&ctx);
 	start_sink(&ctx);
 	sleep(2);
 	start_source(&ctx);
 
 	int i;
 
-#if 0
+#if 1
 	{
 	char buf[LEN];
 	int j;
@@ -26,10 +26,10 @@ int main(int argc, char *argv[])
 	for (i=0; i<LEN; i++) {
 		buf[i] = i*30;
 	}
-	j = write_bytes(&ctx, buf, LEN);
+	j = audio_write(ctx.sink, buf, LEN);
 	if (j != LEN)
 		printf("write: only %d bytes\n", j);
-	j = write_bytes(&ctx, buf, LEN);
+	j = audio_write(ctx.sink, buf, LEN);
 	if (j != LEN)
 		printf("write: only %d bytes\n", j);
 	}
@@ -40,11 +40,14 @@ int main(int argc, char *argv[])
 	for (i = 0; i < 10000; i++) {
 		char buf[LEN];
 		int j;
-		j = read_bytes(&ctx, buf, LEN);
-		if (j != LEN*4)
+		j = audio_read(ctx.source, buf, LEN);
+		if (j != LEN)
 		  	printf("read: only %d bytes\n", j);
-		j = write_bytes(&ctx, buf, LEN);
-		if (j != LEN*4)
+		if (i == 0) {
+		  audio_write(ctx.sink, buf, LEN);
+		}
+		j = audio_write(ctx.sink, buf, LEN);
+		if (j != LEN)
 		  	printf("write: only %d bytes\n", j);
 		
 		usleep(100000);

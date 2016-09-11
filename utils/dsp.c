@@ -162,6 +162,9 @@ int audio_open(int speed)
 
 static void start_source(struct test_ctx *ctx)
 {
+#define SSIZE 4096
+  static char silence[SSIZE];
+  audio_write(ctx->sink, silence, SSIZE);
 }
 
 static void start_sink(struct test_ctx *ctx)
