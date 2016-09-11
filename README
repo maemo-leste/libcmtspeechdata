@@ -107,3 +107,15 @@ To note real call quality, use:
 aplay -c 2 -r 4000 -f  S16_LE /data/tmp/source.raw
 
 tail -c 200000 < /data/tmp/sink.raw | aplay -f  S16_LE -
+
+---
+
+Hardware does not support mono. Nice trap.
+
+Pulseaudio crashes if we try to use mono support. Otherwise it just
+introduces latencies for us. Ok. Advanced trap. I understand why they
+did pulseaudio module now.
+
+OSS is easiest to program, and actually has some useful
+documentation. Good. It can't share the audio with other
+applications. Kind of showstopper.
