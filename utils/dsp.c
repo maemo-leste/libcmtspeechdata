@@ -32,10 +32,12 @@ void to_stereo(s16 *b1, s16 *b2, int size)
 
 ssize_t audio_read(int fd, void *buf, size_t count)
 {
+  return read(fd, buf, count);
 }
 
 ssize_t audio_write(int fd, void *buf, size_t count)
 {
+  return write(fd, buf, count);
 }
 
 #define DEVICE_NAME "/dev/dsp"
@@ -145,7 +147,23 @@ int audio_open(int speed)
   return audio_fd;
 }
 
+static void start_source(struct test_ctx *ctx)
+{
+}
+
+static void start_sink(struct test_ctx *ctx)
+{
+}
+
+static void stop_source(struct test_ctx *ctx)
+{
+}
+
+static void stop_sink(struct test_ctx *ctx)
+{
+}
+
 void audio_init(struct test_ctx *ctx)
 {
-  
+  ctx->source = ctx->sink = audio_open(8000);
 }

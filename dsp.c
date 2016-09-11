@@ -14,7 +14,6 @@ int main(int argc, char *argv[])
   int speed = 8000;
   audio_fd = audio_open(speed);
 
-
   {
 #define SIZE 128
     s16 buf[SIZE], buf2[SIZE];
