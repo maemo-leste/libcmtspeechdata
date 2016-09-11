@@ -14,6 +14,8 @@ gcc -g -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabi/dbus-1.0/inc
 
 gcc -g -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabi/dbus-1.0/include/ utils/cmtspeech_ofono_test.c -lpthread -lrt libcmtspeech.a /usr/lib/arm-linux-gnueabi/libdbus-1.a $(pkg-config --cflags --libs libpulse-simple) -DPULSE -lm -o cmtspeech_ofono_test_pulse
 
+gcc -g -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabi/dbus-1.0/include/ utils/cmtspeech_ofono_test.c -lpthread -lrt libcmtspeech.a /usr/lib/arm-linux-gnueabi/libdbus-1.a $(pkg-config --cflags --libs libpulse-simple) -DDSP -lm -o cmtspeech_ofono_test_dsp
+
 gcc $(pkg-config --cflags --libs libpulse-simple) pa_test.c -o pa_test
 
 # aptitude install libasound-dev

@@ -74,6 +74,10 @@ struct test_ctx {
 	pa_simple *source;
 	pa_simple *sink;
 #endif	
+#ifdef DSP
+	int source;
+	int sink;
+#endif
 	int latency;
 	int data_through;
 
@@ -86,6 +90,9 @@ struct test_ctx {
 #endif
 #ifdef PULSE
 #include "pulse.c"
+#endif
+#ifdef DSP
+#include "dsp.c"
 #endif
 
 #define PREFIX "cmtspeech_ofono_test: "
