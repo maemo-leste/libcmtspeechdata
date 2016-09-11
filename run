@@ -3,5 +3,5 @@
 #sleep 50
 echo "starting"
 cd /my/libcmtspeechdata
-nice -n -20 ./cmtspeech_ofono_test_pulse -a -v -v | tee /my/cmtspeech.log
+nice -n -20 ./cmt_pulse -a -v -v | tee /my/cmtspeech.log
 sleep 1h

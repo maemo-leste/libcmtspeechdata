@@ -1,3 +1,6 @@
+echo Do not use
+exit 1
+
 build_lib () {
 	for a in cmtspeech_backend_common cmtspeech_msgs cmtspeech_nokiamodem sal_debug; do
 	    echo $a
