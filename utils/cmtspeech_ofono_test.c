@@ -55,45 +55,8 @@
 #include <pulse/simple.h>
 #include <pulse/error.h>
 
-#ifdef ALSA
-#include <alsa/asoundlib.h>
-#endif
-
-struct test_ctx {
-	DBusConnection* dbus_conn;
-	int dbus_fd;
-	DBusWatch *dbus_watch;
-	bool call_server_status;
-	int verbose;
-	cmtspeech_t *cmtspeech;
-#ifdef ALSA
-	snd_pcm_t *source;
-	snd_pcm_t *sink;
-#endif
-#ifdef PULSE
-	pa_simple *source;
-	pa_simple *sink;
-#endif	
-#ifdef DSP
-	int source;
-	int sink;
-#endif
-	int latency;
-	int data_through;
-
-	int source_cc, sink_cc;
-};
-
-
-#ifdef ALSA
-#include "alsa.c"
-#endif
-#ifdef PULSE
-#include "pulse.c"
-#endif
-#ifdef DSP
-#include "dsp.c"
-#endif
+#define CMT_REAL
+#include "audio.c"
 
 #define PREFIX "cmtspeech_ofono_test: "
 

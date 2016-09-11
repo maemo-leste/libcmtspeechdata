@@ -1,4 +1,4 @@
-all:	alsa2
+all:	alsa2 cmt_dsp
 
 libcmtspeech.a: cmtspeech_config.h
 	for a in cmtspeech_backend_common cmtspeech_msgs cmtspeech_nokiamodem sal_debug; do \
@@ -9,13 +9,15 @@ libcmtspeech.a: cmtspeech_config.h
 
 CFLAGS_CMT = -g -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabi/dbus-1.0/include/ utils/cmtspeech_ofono_test.c -lpthread -lrt libcmtspeech.a /usr/lib/arm-linux-gnueabi/libdbus-1.a -lm
 
-cmt_alsa: libcmtspeech.a utils/cmtspeech_ofono_test.c utils/alsa.c
+CMT_SRC = libcmtspeech.a utils/cmtspeech_ofono_test.c utils/audio.c
+
+cmt_alsa: $(CMT_SRC) utils/alsa.c
 	gcc $(CFLAGS_CMT) -DALSA -lasound -o cmt_alsa
 
-cmt_pulse: libcmtspeech.a utils/cmtspeech_ofono_test.c utils/pulse.c
+cmt_pulse: $(CMT_SRC) utils/pulse.c
 	gcc $(CFLAGS_CMT) $(pkg-config --cflags --libs libpulse-simple) -DPULSE -o cmt_pulse
 
-cmt_dsp: libcmtspeech.a utils/cmtspeech_ofono_test.c utils/dsp.c
+cmt_dsp: $(CMT_SRC) utils/dsp.c
 	gcc $(CFLAGS_CMT) -DDSP -o cmt_dsp
 
 pa_test: pa_test.c
