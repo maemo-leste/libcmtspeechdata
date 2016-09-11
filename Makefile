@@ -15,7 +15,7 @@ cmt_alsa: $(CMT_SRC) utils/alsa.c
 	gcc $(CFLAGS_CMT) -DALSA -lasound -o cmt_alsa
 
 cmt_pulse: $(CMT_SRC) utils/pulse.c
-	gcc $(CFLAGS_CMT) $(pkg-config --cflags --libs libpulse-simple) -DPULSE -o cmt_pulse
+	gcc $(CFLAGS_CMT) $$(pkg-config --cflags --libs libpulse-simple) -DPULSE -o cmt_pulse
 
 cmt_dsp: $(CMT_SRC) utils/dsp.c
 	gcc $(CFLAGS_CMT) -DDSP -o cmt_dsp

@@ -407,7 +407,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 		if (latency_r > 1000000) {
 			int scratch_int;
 		  fprintf(stderr, "...flush latency (%d)\n", latency_r);
-		  error = readbuf(ctx->source, scratch, ctx->latency, &num, &scratch_int);
+		  error = audio_read(ctx->source, scratch, 1024);
 		  if (error < 0){
 		    fprintf(stderr, __FILE__": error during flushing: %s\n", pa_strerror(error));
 		    exit(1);

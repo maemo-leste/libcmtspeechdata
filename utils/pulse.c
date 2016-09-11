@@ -1,12 +1,16 @@
 
+static int pa_errno;
+
 long audio_read(pa_simple *handle, char *buf, long len)
 {
   size_t frames = len;
   int error;
   /* int pa_simple_read(pa_simple *s, void *data, size_t bytes, int *error); */
   error = pa_simple_read(handle, buf, len, &frames);
-  if (error)
+  if (error) {
+    pa_errno = error;
     return -1;
+  }
   return frames;
 }
 
@@ -16,8 +20,10 @@ long audio_write(pa_simple *handle, char *buf, long len)
   int error;
   /* int pa_simple_write(pa_simple *s, const void *data, size_t bytes, int *error); */
   error = pa_simple_write(handle, buf, len, &frames);
-  if (error)
+  if (error) {
+    pa_errno = error;
     return -1;
+  }
   return len;
 }
 
@@ -93,3 +99,7 @@ static void stop_sink(struct test_ctx *ctx)
 
 void audio_init(struct test_ctx *ctx) {}
 
+static const char *audio_strerror(void)
+{
+  return pa_strerror(pa_errno);
+}
