@@ -469,6 +469,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 		} else {
 			ulbuf->pcount = num;
 		}
+		printf("readbuf done: %d bytes\n", ulbuf->pcount);
 
 		write(ctx->source_cc, ulbuf->payload, num);
 		if (error) {

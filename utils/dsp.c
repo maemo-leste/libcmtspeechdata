@@ -46,11 +46,11 @@ int audio_open(int speed)
 {
   int audio_fd;
 
+  printf("Opening %s, speed %d\n", DEVICE_NAME, speed);
   if ((audio_fd = open(DEVICE_NAME, O_RDWR, 0)) == -1) { /* Opening device failed */  
       perror(DEVICE_NAME);  
       exit(1);  
   } 
-
 
   {
     int devcaps;
@@ -165,5 +165,5 @@ static void stop_sink(struct test_ctx *ctx)
 
 void audio_init(struct test_ctx *ctx)
 {
-  ctx->source = ctx->sink = audio_open(8000);
+  ctx->source = ctx->sink = audio_open(4000);
 }

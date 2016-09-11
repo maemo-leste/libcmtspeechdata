@@ -16,7 +16,7 @@ char silence[SSIZE];
 
 int main(int argc, char *argv[]) 
 {
-  int speed = 8000;
+  int speed = 4000;
   audio_fd = audio_open(speed);
 
   {
