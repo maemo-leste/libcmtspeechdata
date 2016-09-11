@@ -468,3 +468,7 @@ static void audio_init(struct test_ctx *ctx)
 	setscheduler();
 }
 
+static const char *audio_strerror(void)
+{
+  return strerror(errno);
+}

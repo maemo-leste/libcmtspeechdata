@@ -185,7 +185,7 @@ void audio_init(struct test_ctx *ctx)
   ctx->source = ctx->sink = audio_open(4000);
 }
 
-static char *audio_strerror(void)
+static const char *audio_strerror(void)
 {
   return strerror(errno);
 }

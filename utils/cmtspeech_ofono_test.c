@@ -364,11 +364,10 @@ static void priv_parse_options(struct test_ctx *ctx, int argc, char *argv[])
 
 		      for (i=0; i<len; i++)
 			      buf[i] = i*5;
-#if 0
-		      res = read_bytes(ctx, buf, len);
+
+		      res = audio_read(ctx->source, buf, len);
 		      printf("read: %d\n", res);
-#endif
-		      res = write_bytes(ctx, buf, len);
+		      res = audio_write(ctx->sink, buf, len);
 		      printf("write: %d\n", res);		      
 	      }
 #endif
