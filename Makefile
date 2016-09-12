@@ -1,4 +1,4 @@
-all:	alsa2 cmt_dsp cmt_pulse cmt_alsa
+all:	cmt_dsp cmt_pulse cmt_alsa
 
 libcmtspeech.a: cmtspeech_config.h
 	for a in cmtspeech_backend_common cmtspeech_msgs cmtspeech_nokiamodem sal_debug; do \
@@ -26,8 +26,8 @@ pa_test: pa_test.c
 alsa_test: alsa_test.c
 	gcc -g -Wall alsa_test.c -o alsa_test -lasound -lm
 
-alsa2: alsa2.c
-	gcc -g -Wall alsa2.c -o alsa2 -lasound -lm
+loop_alsa: loop.c
+	gcc -g -Wall loop.c -DALSA -o loop_alsa -lasound -lm
 
 dsp2: dsp2.c
 	gcc -g -Wall dsp2.c -o dsp2

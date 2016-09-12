@@ -1,7 +1,7 @@
 /* -*- linux-c -*- */
 
 #define TEST
-#include "utils/alsa.c"
+#include "utils/audio.c"
 
 struct test_ctx ctx;
 

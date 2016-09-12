@@ -26,16 +26,6 @@
  *   (at your option) any later version.
  */
 
-#ifdef TEST
-struct test_ctx {
-	int verbose;
-	snd_pcm_t *source;
-	snd_pcm_t *sink;
-	int latency;
-	int data_through;
-};
-#endif
-
 char *pdevice = "plughw:0,0";
 char *cdevice = "plughw:0,0";
 snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
