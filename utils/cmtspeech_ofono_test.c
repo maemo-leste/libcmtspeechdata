@@ -35,7 +35,7 @@
 
 /**
  * General list of TODO items:
- *  - <none>
+ *  - too big to list here :-).
  */
 
 #include <assert.h>
@@ -407,8 +407,8 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 			int scratch_int;
 		  fprintf(stderr, "...flush latency (%d)\n", latency_r);
 		  error = audio_read(ctx->source, scratch, 1024);
-		  if (error < 0){
-		    fprintf(stderr, __FILE__": error during flushing: %s\n", pa_strerror(error));
+		  if (error < 0) {
+		    fprintf(stderr, __FILE__": error during flushing: %s\n", audio_strerror());
 		    exit(1);
 		  }
 
