@@ -1,4 +1,8 @@
-all:	cmt_dsp cmt_pulse cmt_alsa
+TARGETS = cmt_dsp cmt_pulse cmt_alsa
+all:	$(TARGETS)
+
+clean:
+	rm $(TARGETS)
 
 libcmtspeech.a: cmtspeech_config.h
 	for a in cmtspeech_backend_common cmtspeech_msgs cmtspeech_nokiamodem sal_debug; do \

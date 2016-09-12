@@ -403,7 +403,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 			break;
 		}
 
-		if (latency_r > 1000000) {
+		if (latency_r > 300000) {
 			int scratch_int;
 		  fprintf(stderr, "...flush latency (%d)\n", latency_r);
 		  error = audio_read(ctx->source, scratch, 1024);
@@ -423,7 +423,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 			break;
 
 		memset(ulbuf->payload, 0, ulbuf->pcount);
-		printf("readbuf: %d bytes\n", ulbuf->pcount);
+		//printf("readbuf: %d bytes\n", ulbuf->pcount);
 		num = audio_read(ctx->source, ulbuf->payload, ulbuf->pcount);
 		if (num < 0) {
 			fprintf(stderr, "error reading from source (%d), error %s\n", ulbuf->pcount,
@@ -431,7 +431,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 		} else {
 			ulbuf->pcount = num;
 		}
-		printf("readbuf done: %d bytes\n", ulbuf->pcount);
+		//printf("readbuf done: %d bytes\n", ulbuf->pcount);
 
 		write(ctx->source_cc, ulbuf->payload, num);
 		if (error) {
