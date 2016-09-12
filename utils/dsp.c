@@ -12,44 +12,15 @@
 #include <stdlib.h>
 #include <errno.h>
 
-typedef int16_t s16;
-
-void to_mono(s16 *b1, s16 *b2, int size)
-{
-  int i;
-  for (i = 0; i < size/2; i++) {
-    b2[i] = b1[2*i] + b1[2*i+1];
-  }
-}
-
-void to_stereo(s16 *b1, s16 *b2, int size)
-{
-  int i;
-  for (i = 0; i < size; i++) {
-    b2[2*i] = b1[i];
-    b2[2*i+1] = b1[i];
-  }
-}
-
-void adjust_volume(int factor, s16 *b, int size)
-{
-  int i;
-  for (i = 0; i < size/2; i++) {
-    b[i] = b[i] * factor;
-  }
-}
-
-ssize_t audio_read(int fd, void *buf, size_t count)
+ssize_t audio_read_raw(int fd, void *buf, size_t count)
 {
   ssize_t res = read(fd, buf, count);
-  adjust_volume(10, buf, count);
   return res;
 }
 
-ssize_t audio_write(int fd, void *buf, size_t count)
+ssize_t audio_write_raw(int fd, void *buf, size_t count)
 {
   ssize_t res;
-  adjust_volume(10, buf, count);
   res = write(fd, buf, count);
   return res;
 }

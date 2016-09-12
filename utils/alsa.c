@@ -274,7 +274,7 @@ long readbuf(snd_pcm_t *handle, char *buf, long len, size_t *frames, size_t *max
 	return r;
 }
 
-long audio_read(snd_pcm_t *source, void *buf, int len)
+long audio_read_raw(snd_pcm_t *source, void *buf, int len)
 {
 	size_t a = 0, b = 0;
 
@@ -306,7 +306,7 @@ long writebuf(snd_pcm_t *handle, char *buf, long len, size_t *frames)
 	return 0;
 }
 
-long audio_write(snd_pcm_t *sink, void *buf, int len)
+long audio_write_raw(snd_pcm_t *sink, void *buf, int len)
 {
 	size_t a = 0;
 

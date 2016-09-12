@@ -1,4 +1,4 @@
-all:	alsa2 cmt_dsp cmt_pulse
+all:	alsa2 cmt_dsp cmt_pulse cmt_alsa
 
 libcmtspeech.a: cmtspeech_config.h
 	for a in cmtspeech_backend_common cmtspeech_msgs cmtspeech_nokiamodem sal_debug; do \
