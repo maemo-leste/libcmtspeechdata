@@ -502,7 +502,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 		exit(1);
 	}
 	int cnt = dlbuf->pcount;
-	printf("Writing : %d bytes\n", dlbuf->payload);
+	printf("Writing : %d bytes\n", dlbuf->pcount);
 	num = audio_write(ctx->sink, dlbuf->payload, dlbuf->pcount);
 	write(ctx->sink_cc, dlbuf->payload, dlbuf->pcount);
 	if (num < 0) {
