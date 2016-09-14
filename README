@@ -90,3 +90,20 @@ Further documentation
 
 See the documentation distributed with libcmtspeehcdata-doc package:
  - /usr/share/doc/libcmtspeechdata-doc/html/
+
+----
+
+Notes for Debian on n900:
+
+Optional recording is provided. Use 
+
+aplay -f  S16_LE /data/tmp/sink.raw
+aplay -f  S16_LE /data/tmp/source.raw
+
+--
+
+To note real call quality, use:
+
+aplay -c 2 -r 4000 -f  S16_LE /data/tmp/source.raw
+
+tail -c 200000 < /data/tmp/sink.raw | aplay -f  S16_LE -

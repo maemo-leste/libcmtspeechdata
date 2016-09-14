@@ -30,14 +30,27 @@ void to_stereo(s16 *b1, s16 *b2, int size)
   }
 }
 
+void adjust_volume(int factor, s16 *b, int size)
+{
+  int i;
+  for (i = 0; i < size/2; i++) {
+    b[i] = b[i] * factor;
+  }
+}
+
 ssize_t audio_read(int fd, void *buf, size_t count)
 {
-  return read(fd, buf, count);
+  ssize_t res = read(fd, buf, count);
+  adjust_volume(10, buf, count);
+  return res;
 }
 
 ssize_t audio_write(int fd, void *buf, size_t count)
 {
-  return write(fd, buf, count);
+  ssize_t res;
+  adjust_volume(10, buf, count);
+  res = write(fd, buf, count);
+  return res;
 }
 
 #define DEVICE_NAME "/dev/dsp"

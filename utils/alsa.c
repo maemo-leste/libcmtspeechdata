@@ -458,7 +458,7 @@ static void stop_sink(struct test_ctx *ctx)
 	ctx->sink = NULL;
 }
 
-static void snd_init(void)
+static void audio_init(struct test_ctx *ctx)
 {
 	int err = snd_output_stdio_attach(&output, stdout, 0);
 	if (err < 0) {

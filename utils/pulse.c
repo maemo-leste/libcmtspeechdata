@@ -1,14 +1,24 @@
 
-long readbuf(pa_simple *handle, char *buf, long len, size_t *frames, size_t *max)
+long audio_read(pa_simple *handle, char *buf, long len)
 {
+  size_t frames = len;
+  int error;
   /* int pa_simple_read(pa_simple *s, void *data, size_t bytes, int *error); */
-  return pa_simple_read(handle, buf, len, frames);
+  error = pa_simple_read(handle, buf, len, &frames);
+  if (error)
+    return -1;
+  return frames;
 }
 
-long writebuf(pa_simple *handle, char *buf, long len, size_t *frames)
+long audio_write(pa_simple *handle, char *buf, long len)
 {
+  int frames = len;
+  int error;
   /* int pa_simple_write(pa_simple *s, const void *data, size_t bytes, int *error); */
-  return pa_simple_write(handle, buf, len, frames);
+  error = pa_simple_write(handle, buf, len, &frames);
+  if (error)
+    return -1;
+  return len;
 }
 
 #if 0
@@ -81,4 +91,5 @@ static void stop_sink(struct test_ctx *ctx)
 	ctx->sink = NULL;
 }
 
-void snd_init(void) {}
+void audio_init(struct test_ctx *ctx) {}
+
