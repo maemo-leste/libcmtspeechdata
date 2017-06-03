@@ -1,4 +1,4 @@
-/* -*- linux-c -*- */
+/* -*- c-file-style: "linux" -*- */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,9 +35,7 @@ int buffer_size = 0;		/* auto */
 int period_size = 0;		/* auto */
 int latency_min = 512;		/* in frames / 2 */
 int latency_max = 8192;		/* in frames / 2 */
-int loop_sec = 90;		/* seconds */
 int block = 0;			/* block mode */
-int use_poll = 0;
 int resample = 1;
 unsigned long loop_limit;
 
