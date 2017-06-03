@@ -78,14 +78,14 @@ void adjust_volume(int factor, s16 *b, int size)
 ssize_t audio_read(audio_t fd, void *buf, size_t count)
 {
   ssize_t res = audio_read_raw(fd, buf, count);
-  adjust_volume(2, buf, count);
+  adjust_volume(1, buf, count);
   return res;
 }
 
 ssize_t audio_write(audio_t fd, void *buf, size_t count)
 {
   ssize_t res;
-  adjust_volume(2, buf, count);
+  adjust_volume(1, buf, count);
   res = audio_write_raw(fd, buf, count);
   return res;
 }
