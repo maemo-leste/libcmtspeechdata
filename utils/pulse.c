@@ -1,49 +1,50 @@
+/* -*- c-file-style: "linux" -*- */
 
 static int pa_errno;
 
 long audio_read_raw(pa_simple *handle, char *buf, long len)
 {
-  size_t frames = len;
-  int error;
-  /* int pa_simple_read(pa_simple *s, void *data, size_t bytes, int *error); */
-  error = pa_simple_read(handle, buf, len, &frames);
-  if (error) {
-    pa_errno = error;
-    return -1;
-  }
-  return frames;
+	size_t frames = len;
+	int error;
+
+	error = pa_simple_read(handle, buf, len, &frames);
+	if (error) {
+		pa_errno = error;
+		return -1;
+	}
+	return frames;
 }
 
 long audio_write_raw(pa_simple *handle, char *buf, long len)
 {
-  int frames = len;
-  int error;
-  /* int pa_simple_write(pa_simple *s, const void *data, size_t bytes, int *error); */
-  error = pa_simple_write(handle, buf, len, &frames);
-  if (error) {
-    pa_errno = error;
-    return -1;
-  }
-  return len;
+	int frames = len;
+	int error;
+
+	error = pa_simple_write(handle, buf, len, &frames);
+	if (error) {
+		pa_errno = error;
+		return -1;
+	}
+	return len;
 }
 
 #if 0
 static void flush_input(struct test_ctx *ctx)
 {
-  char scratch[10240];
-  int total = 0;
+	char scratch[10240];
+	int total = 0;
 
-  fprintf(stderr, "Flushing input...\n");
-  if (!ctx->sink_fd)
-    return;
-  while(1) {
-    int num;
-    num = read(ctx->source_fd, scratch, 10240);
-    if (num == -1)
-      break;
-    total += num;
-  }
-  fprintf(stderr, "Flushing input (%d)\n", total);
+	fprintf(stderr, "Flushing input...\n");
+	if (!ctx->sink_fd)
+		return;
+	while(1) {
+		int num;
+		num = read(ctx->source_fd, scratch, 10240);
+		if (num == -1)
+			break;
+		total += num;
+	}
+	fprintf(stderr, "Flushing input (%d)\n", total);
 }
 #endif
 
