@@ -38,7 +38,7 @@ atest_dsp: $(ATEST_SRC) utils/dsp.c
 	gcc $(CFLAGS_ATEST) -DDSP -o atest_dsp
 
 pa_test: pa_test.c
-	gcc $(pkg-config --cflags --libs libpulse-simple) pa_test.c -o pa_test
+	gcc $$(pkg-config --cflags --libs libpulse-simple) pa_test.c -o pa_test
 
 alsa_test: alsa_test.c
 	gcc -g -Wall alsa_test.c -o alsa_test -lasound -lm
