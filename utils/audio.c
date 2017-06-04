@@ -1,5 +1,7 @@
 /* -*- c-file-style: "linux" -*- */
 
+#include <limits.h>
+
 #ifdef ALSA
 #include <alsa/asoundlib.h>
 #endif
