@@ -1,23 +1,27 @@
 /* -*- c-file-style: "linux" -*- */
 
 #include <limits.h>
-
-#ifdef ALSA
-#include <alsa/asoundlib.h>
-#endif
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 typedef int16_t s16;
 
 #ifdef ALSA
+#include <alsa/asoundlib.h>
 typedef snd_pcm_t * audio_t;
 #endif
 #ifdef PULSE
+#include <pulse/simple.h>
+#include <pulse/error.h>
 typedef pa_simple * audio_t;
 #endif	
 #ifdef DSP
 typedef int audio_t;
 #endif
-
+#ifndef PULSE
+typedef long long pa_usec_t;
+#endif
 
 struct test_ctx {
 #ifdef CMT_REAL

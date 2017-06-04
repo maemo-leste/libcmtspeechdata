@@ -3,6 +3,7 @@
  * This file is part of libcmtspeechdata.
  *
  * Copyright (C) 2008,2009,2010 Nokia Corporation.
+ * Copyright 2017 Pavel Machek <pavel@ucw.cz> 
  *
  * Contact: Kai Vehmanen <kai.vehmanen@nokia.com>
  *
@@ -51,9 +52,6 @@
 
 #include <unistd.h>
 #include <fcntl.h>
-
-#include <pulse/simple.h>
-#include <pulse/error.h>
 
 #define CMT_REAL
 #include "audio.c"

@@ -32,7 +32,7 @@ atest_alsa: $(ATEST_SRC) utils/alsa.c
 	gcc $(CFLAGS_ATEST) -DALSA -lasound -o atest_alsa
 
 atest_pulse: $(ATEST_SRC) utils/pulse.c
-	gcc $(CFLAGS_ATEST) $$(pkg-config --cflags --libs libpulse-simple) -DPULSE -o atest_pulse
+	gcc $(CFLAGS_ATEST)  -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabi/dbus-1.0/include/  $$(pkg-config --cflags --libs libpulse-simple) -DPULSE -o atest_pulse
 
 atest_dsp: $(ATEST_SRC) utils/dsp.c
 	gcc $(CFLAGS_ATEST) -DDSP -o atest_dsp
