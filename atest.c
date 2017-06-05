@@ -9,7 +9,7 @@ struct test_ctx *ctx = &ctx0;
 void
 main(void)
 {
-#define SIZE 4096
+#define SIZE 3300
 	char buf[SIZE] = { 0, };
   audio_init(ctx);
 	      printf("opening streams\n"); fflush(stdout);
@@ -32,9 +32,13 @@ main(void)
 			      buf[i] = i*5;
 
 		      res = audio_read(ctx->source, buf, len);
-		      printf("read: %d\n", res);
+		      printf("read: %d, ", res);
 		      res = audio_write(ctx->sink, buf, res);
-		      printf("write: %d (%d)\n", res, snd_pcm_avail_update(ctx->sink));
+		      printf("write: %d, ", res);
+#ifdef ALSA
+		      printf("avail: %d", snd_pcm_avail_update(ctx->sink));
+#endif
+		      printf("\n");
 
 	      }
 }
