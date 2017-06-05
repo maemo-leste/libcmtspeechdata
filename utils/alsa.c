@@ -11,14 +11,7 @@
 #include <math.h>
 
 /*
- *  Latency test program
- *
- *     Author: Jaroslav Kysela <perex@perex.cz>
- *
- *  This small demo program can be used for measuring latency between
- *  capture and playback. This latency is measured from driver (diff when
- *  playback and capture was started). Scheduler is set to SCHED_RR.
- *
+ *  Based on Latency test program by Jaroslav Kysela <perex@perex.cz>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -419,9 +412,7 @@ static void start_source(struct test_ctx *ctx)
 		exit(0);
 	}
 
-
 	snd_pcm_dump(chandle, output);
-       
 }
 
 static void snd_stop(snd_pcm_t *p)
@@ -452,7 +443,6 @@ static void audio_init(struct test_ctx *ctx)
 	if (err < 0) {
 		printf("Output failed: %s\n", snd_strerror(err));
 	}
-
 	setscheduler();
 }
 
