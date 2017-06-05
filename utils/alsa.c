@@ -23,7 +23,11 @@ char *pdevice = "plughw:0,0";
 char *cdevice = "plughw:0,0";
 snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
 int rate = 8000;
+#ifdef MAN_STEREO
+int channels = 2;
+#else
 int channels = 1;
+#endif
 int buffer_size = 0;		/* auto */
 int period_size = 0;		/* auto */
 int latency_min = 512;		/* in frames / 2 */

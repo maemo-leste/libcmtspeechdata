@@ -53,7 +53,7 @@ void to_mono(s16 *b1, s16 *b2, int size)
 void to_stereo(s16 *b1, s16 *b2, int size)
 {
 	int i;
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size/2; i++) {
 		b2[2*i] = b1[i];
 		b2[2*i+1] = b1[i];
 	}
@@ -74,6 +74,7 @@ void adjust_volume(int factor, s16 *b, int size)
 }
 
 #ifdef ALSA
+#define MAN_STEREO
 #include "alsa.c"
 #endif
 #ifdef PULSE
@@ -83,6 +84,36 @@ void adjust_volume(int factor, s16 *b, int size)
 #include "dsp.c"
 #endif
 
+#define SSIZE (16*1024)
+char sbuf[SSIZE*2];
+
+#ifdef MAN_STEREO
+ssize_t audio_read(audio_t fd, void *buf, size_t count)
+{
+	ssize_t res;
+	if (count > SSIZE) {
+		printf("Too big request\n");
+		exit(1);
+	}
+	res = audio_read_raw(fd, sbuf, count*2);
+	to_mono(sbuf, buf, res);
+	adjust_volume(1, buf, count);
+	return res;
+}
+
+ssize_t audio_write(audio_t fd, void *buf, size_t count)
+{
+	ssize_t res;
+	if (count > SSIZE) {
+		printf("Too big request\n");
+		exit(1);
+	}
+	adjust_volume(1, buf, count);
+	to_stereo(buf, sbuf, count);
+	res = audio_write_raw(fd, sbuf, count*2);
+	return res;
+}
+#else
 ssize_t audio_read(audio_t fd, void *buf, size_t count)
 {
 	ssize_t res = audio_read_raw(fd, buf, count);
@@ -97,6 +128,7 @@ ssize_t audio_write(audio_t fd, void *buf, size_t count)
 	res = audio_write_raw(fd, buf, count);
 	return res;
 }
+#endif
 
 ssize_t audio_generate(s16 *buf, size_t count)
 {
