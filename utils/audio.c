@@ -97,3 +97,11 @@ ssize_t audio_write(audio_t fd, void *buf, size_t count)
 	res = audio_write_raw(fd, buf, count);
 	return res;
 }
+
+ssize_t audio_generate(s16 *buf, size_t count)
+{
+	int i;
+	for (i = 0; i < count/2; i++) {
+		buf[i] = sin((i * 3.1415) / 16.0) * 32700;
+	}
+}
