@@ -15,9 +15,13 @@ CFLAGS_CMT = -g -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabi/dbu
 
 CFLAGS_ATEST = -g atest.c
 
+CFLAGS_RAWPLAY = -g rawplay.c
+
 CMT_SRC = libcmtspeech.a utils/cmtspeech_ofono_test.c utils/audio.c
 
 ATEST_SRC =  atest.c utils/audio.c
+
+RAWPLAY_SRC =  rawplay.c utils/audio.c
 
 cmt_alsa: $(CMT_SRC) utils/alsa.c
 	gcc $(CFLAGS_CMT) -DALSA -lasound -o cmt_alsa
@@ -36,6 +40,9 @@ atest_pulse: $(ATEST_SRC) utils/pulse.c
 
 atest_dsp: $(ATEST_SRC) utils/dsp.c
 	gcc $(CFLAGS_ATEST) -DDSP -o atest_dsp
+
+rawplay_alsa: $(RAWPLAY_SRC) utils/alsa.c
+	gcc $(CFLAGS_RAWPLAY) -DALSA -lasound -o rawplay_alsa
 
 pa_test: pa_test.c
 	gcc $$(pkg-config --cflags --libs libpulse-simple) pa_test.c -o pa_test
