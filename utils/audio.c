@@ -59,18 +59,27 @@ void to_stereo(s16 *b1, s16 *b2, int size)
 	}
 }
 
-void adjust_volume(int factor, s16 *b, int size)
+void adjust_volume(float factor, s16 *b, int size)
 {
 	int i;
 	long v;
+	static int overruns = 0;
+	int min=0, max=0; 
 	for (i = 0; i < size/2; i++) {
 		v = b[i] * factor;
-		if (v > SHRT_MAX)
+		if (v > max) max=v;
+		if (v < min) min=v;
+		if (v > SHRT_MAX) {
 			v = SHRT_MAX;
-		if (v < SHRT_MIN)
+			overruns++;
+		}
+		if (v < SHRT_MIN) {
 			v = SHRT_MIN;
+			overruns++;
+		}
 		b[i] = v;
 	}
+	printf("%d overruns, %6d..%d\n", overruns, min, max);
 }
 
 #ifdef ALSA
@@ -108,7 +117,7 @@ ssize_t audio_write(audio_t fd, void *buf, size_t count)
 		printf("Too big request\n");
 		exit(1);
 	}
-	adjust_volume(1, buf, count);
+	adjust_volume(3, buf, count);
 	to_stereo(buf, sbuf, count);
 	res = audio_write_raw(fd, sbuf, count*2);
 	return res/2;
