@@ -74,7 +74,7 @@ void adjust_volume(int factor, s16 *b, int size)
 }
 
 #ifdef ALSA
-//#define MAN_STEREO
+#define MAN_STEREO
 #include "alsa.c"
 #endif
 #ifdef PULSE
@@ -98,7 +98,7 @@ ssize_t audio_read(audio_t fd, void *buf, size_t count)
 	res = audio_read_raw(fd, sbuf, count*2);
 	to_mono(sbuf, buf, res);
 	adjust_volume(1, buf, count);
-	return res;
+	return res/2;
 }
 
 ssize_t audio_write(audio_t fd, void *buf, size_t count)
@@ -111,7 +111,7 @@ ssize_t audio_write(audio_t fd, void *buf, size_t count)
 	adjust_volume(1, buf, count);
 	to_stereo(buf, sbuf, count);
 	res = audio_write_raw(fd, sbuf, count*2);
-	return res;
+	return res/2;
 }
 #else
 ssize_t audio_read(audio_t fd, void *buf, size_t count)
