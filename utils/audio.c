@@ -74,7 +74,7 @@ void adjust_volume(int factor, s16 *b, int size)
 }
 
 #ifdef ALSA
-#define MAN_STEREO
+//#define MAN_STEREO
 #include "alsa.c"
 #endif
 #ifdef PULSE
