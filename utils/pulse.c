@@ -1,5 +1,7 @@
 /* -*- c-file-style: "linux" -*- */
 
+#define DRIVER_NAME "pulse"
+
 static int pa_errno;
 
 long audio_read_raw(pa_simple *handle, char *buf, long len)

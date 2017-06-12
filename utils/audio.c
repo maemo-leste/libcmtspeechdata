@@ -133,9 +133,18 @@ ssize_t audio_write(audio_t fd, void *buf, size_t count)
 	gain = adjust_volume(gain, buf, count);
 	to_stereo(buf, sbuf, count);
 	res = audio_write_raw(fd, sbuf, count*2);
+	{
+		char buf[1024];
+
+		sprintf(buf, "call\ndriver: %s\nspeaker: %.2f\n",
+			DRIVER_NAME,
+			gain);
+		wd_write(buf);
+	}
 	return res/2;
 }
 #else
+#error Update me: auto gain support, watchdog ....
 ssize_t audio_read(audio_t fd, void *buf, size_t count)
 {
 	ssize_t res = audio_read_raw(fd, buf, count);
@@ -158,4 +167,28 @@ ssize_t audio_generate(s16 *buf, size_t count)
 	for (i = 0; i < count/2; i++) {
 		buf[i] = sin((i * 3.1415) / 16.0) * 32700;
 	}
+}
+
+static char wd_buf[1024] = "\0";
+
+char *wd_name(void)
+{
+	if (*wd_buf)
+		return wd_buf;
+
+	sprintf(wd_buf, "%s/herd/wd/call", getenv("HOME"));
+	return wd_buf;
+}
+
+void wd_write(char *s)
+{
+	int f = open(wd_name(), O_WRONLY | O_TRUNC | O_CREAT, 0600);
+
+	write(f, s, strlen(s));
+	close(f);
+}
+
+void wd_done(void)
+{
+	wd_write("no\n");
 }

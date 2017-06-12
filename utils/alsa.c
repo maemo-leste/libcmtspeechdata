@@ -10,6 +10,8 @@
 #include <sys/time.h>
 #include <math.h>
 
+#define DRIVER_NAME "alsa"
+
 /*
  *  Based on Latency test program by Jaroslav Kysela <perex@perex.cz>
  *

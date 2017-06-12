@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#define DRIVER_NAME "dsp"
+
 ssize_t audio_read_raw(int fd, void *buf, size_t count)
 {
 	ssize_t res = read(fd, buf, count);
