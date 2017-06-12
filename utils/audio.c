@@ -45,7 +45,7 @@ struct test_ctx {
 void to_mono(s16 *b1, s16 *b2, int size)
 {
 	int i;
-	for (i = 0; i < size/2; i++) {
+	for (i = 0; i < size/4; i++) {
 		b2[i] = b1[2*i] + b1[2*i+1];
 	}
 }

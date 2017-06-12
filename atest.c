@@ -67,6 +67,6 @@ main(void)
 #endif
 	      printf("streams open\n"); fflush(stdout);
 
-	      volume_test(); /* cca 62.5 dBA */
-	      //duplex_test();
+	      //volume_test(); /* cca 62.5 dBA */
+	      duplex_test();
 }
