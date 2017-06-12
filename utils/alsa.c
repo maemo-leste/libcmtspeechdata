@@ -293,9 +293,18 @@ long writebuf(snd_pcm_t *handle, char *buf, long len, size_t *frames)
 	return 0;
 }
 
+static char zero_buf[6*1024] = { 0, };
+
 long audio_write_raw(snd_pcm_t *sink, void *buf, int len)
 {
 	size_t a = 0;
+
+	/* Alsa does not want to recover from buffer underrun */
+	if (-32 == snd_pcm_avail_update(sink)) {
+		writebuf(sink, zero_buf, 6*1024, &a);
+		printf("sink: Buffer underrun?\n");
+		snd_pcm_start(sink);
+	}
 
 	writebuf(sink, buf, len/4, &a);
 	return a*4;
@@ -361,7 +370,8 @@ static void start_sink(struct test_ctx *ctx)
 	}
 
 	snd_pcm_dump(phandle, output);
-
+	
+	printf("initial write: %d\n", audio_write(ctx->sink, zero_buf, 3*1024));
 }
 
 static void start_source(struct test_ctx *ctx)

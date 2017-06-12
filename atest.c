@@ -21,11 +21,7 @@ duplex_test(void)
 		res = audio_read(ctx->source, buf, len);
 		printf("read: %d, ", res);
 		res = audio_write(ctx->sink, buf, res);
-		printf("write: %d, ", res);
-#ifdef ALSA
-		printf("avail: %d", snd_pcm_avail_update(ctx->sink));
-#endif
-		printf("\n");
+		printf("write: %d\n", res);
 	}
 }
 
@@ -58,7 +54,6 @@ main(void)
   audio_init(ctx);
 	      printf("opening streams\n"); fflush(stdout);
 	      start_sink(ctx);
-	      printf("initial write: %d\n", audio_write(ctx->sink, buf, SIZE));
 	      printf("sink ok\n"); fflush(stdout);	      	      
 	      start_source(ctx);
 #ifdef ALSA

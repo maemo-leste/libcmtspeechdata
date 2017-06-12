@@ -1,3 +1,12 @@
 #!/bin/bash
-cd /my/libcmtspeechdata
-sudo nice -n -11 ./pa_test
+#cd /my/libcmtspeechdata
+#sudo nice -n -11 ./pa_test
+
+killall cmt_pulse
+sudo ./cmt_alsa -a -v -v
+
+cd /my/ofono/test
+./hangup-all
+./dial-number 800123456
+
+# Worked once :-(.
