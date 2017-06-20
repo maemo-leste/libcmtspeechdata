@@ -9,10 +9,15 @@ struct test_ctx *ctx = &ctx0;
 void
 volume_test(void)
 {
+#if 1
 	int f = open("/data/tmp/sink.old.raw", O_RDONLY);
-	int fo = open("/data/tmp/rawplay.raw", O_WRONLY | O_CREAT, 0600);
+	int fo = open("/data/tmp/rawplay.raw", O_WRONLY | O_CREAT | O_TRUNC, 0600);
+#else
+	int f = open("/data/tmp/rawplay.raw", O_RDONLY);
+	int fo = open("/dev/zero", O_WRONLY | O_CREAT, 0600);
+#endif
 	while (1) {
-		int len = 4096;
+		int len = 1024;
 		char buf[len];
 		long res;
 		int i;
@@ -24,8 +29,13 @@ volume_test(void)
 		}
 		res = audio_write(ctx->sink, buf, res);
 
-		res = audio_read(ctx->source, buf, len);
-		write(fo, buf, res);
+		res = audio_read(ctx->source, buf, res);
+		printf("Audio read: %d\n", res);
+		if (res != write(fo, buf, res)) {
+			printf("error writing microphone copy, %m\n");
+			return;
+		}
+
 //		printf("write: %d, ", res);
 #ifdef ALSA
 		while (snd_pcm_avail_update(ctx->sink) < 512)

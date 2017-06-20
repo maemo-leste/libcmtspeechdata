@@ -242,7 +242,7 @@ long readbuf(snd_pcm_t *handle, char *buf, long len, size_t *frames, size_t *max
 			if ((long)*max < r)
 				*max = r;
 		}
-		// printf("read = %li\n", r);
+		printf("read = %li\n", r);
 	} else {
 		int frame_bytes = (snd_pcm_format_width(format) / 8) * channels;
 		do {
@@ -264,8 +264,15 @@ long readbuf(snd_pcm_t *handle, char *buf, long len, size_t *frames, size_t *max
 long audio_read_raw(snd_pcm_t *source, void *buf, int len)
 {
 	size_t a = 0, b = 0;
-
-	readbuf(source, buf, len/4, &a, &b);
+	int r;
+	
+	r = readbuf(source, buf, len/4, &a, &b);
+	if (r == -32) {
+		printf("read_raw: -32...\n");
+		snd_pcm_prepare(source);
+		
+	}
+	
 	return a*4;
 }
 
@@ -301,9 +308,17 @@ long audio_write_raw(snd_pcm_t *sink, void *buf, int len)
 
 	/* Alsa does not want to recover from buffer underrun */
 	if (-32 == snd_pcm_avail_update(sink)) {
+		int err;
+		
 		writebuf(sink, zero_buf, 6*1024, &a);
 		printf("sink: Buffer underrun?\n");
-		snd_pcm_start(sink);
+		err = snd_pcm_prepare(sink);
+		if (err < 0)  {
+			printf("Prepare error: %s\n", snd_strerror(err));
+			exit(0);
+		}
+		printf("Prepare ok: %d\n", err);
+		
 	}
 
 	writebuf(sink, buf, len/4, &a);
