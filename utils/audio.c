@@ -110,7 +110,7 @@ char sbuf[SSIZE*2];
 #ifdef MAN_STEREO
 ssize_t audio_read(audio_t fd, void *buf, size_t count)
 {
-	static float gain = 1;
+	static float gain = 3;
 	ssize_t res;
 	if (count > SSIZE) {
 		printf("Too big request\n");
@@ -118,7 +118,7 @@ ssize_t audio_read(audio_t fd, void *buf, size_t count)
 	}
 	res = audio_read_raw(fd, sbuf, count*2);
 	to_mono(sbuf, buf, res);
-	gain = adjust_volume(1, buf, count);
+	gain = adjust_volume(gain, buf, count);
 	return res/2;
 }
 

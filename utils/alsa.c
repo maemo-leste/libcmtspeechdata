@@ -21,8 +21,8 @@
  *   (at your option) any later version.
  */
 
-char *pdevice = "plughw:0,0";
-char *cdevice = "plughw:0,0";
+char *pdevice = "hw:0,0";
+char *cdevice = "hw:0,0";
 snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
 int rate = 8000;
 #ifdef MAN_STEREO
