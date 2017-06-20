@@ -59,7 +59,7 @@ void to_stereo(s16 *b1, s16 *b2, int size)
 	}
 }
 
-float adjust_volume(float factor, s16 *b, int size)
+float adjust_volume(float factor, s16 *b, int size, int dc_adj)
 {
 	int i;
 	long v;
@@ -67,7 +67,8 @@ float adjust_volume(float factor, s16 *b, int size)
 	static int overflows = 0;
 	int min=99999, max=-99999; 
 	for (i = 0; i < size/2; i++) {
-		v = b[i] * factor;
+		v = b[i] + dc_adj;
+		v = v * factor;
 		avg += v;
 		if (v > max) max=v;
 		if (v < min) min=v;
@@ -91,8 +92,8 @@ float adjust_volume(float factor, s16 *b, int size)
 		factor *= 1.02;
 	if (factor < 1)
 		factor = 1;
-	if (factor > 6)
-		factor = 6;
+	if (factor > 30)
+		factor = 30;
 	return factor;
 }
 
@@ -121,7 +122,7 @@ ssize_t audio_read(audio_t fd, void *buf, size_t count)
 	}
 	res = audio_read_raw(fd, sbuf, count*2);
 	to_mono(sbuf, buf, res);
-	gain = adjust_volume(gain, buf, count);
+	gain = adjust_volume(gain, buf, count, -3300);
 	return res/2;
 }
 
@@ -133,7 +134,7 @@ ssize_t audio_write(audio_t fd, void *buf, size_t count)
 		printf("Too big request\n");
 		exit(1);
 	}
-	gain = adjust_volume(gain, buf, count);
+	gain = adjust_volume(gain, buf, count, 0);
 	to_stereo(buf, sbuf, count);
 	res = audio_write_raw(fd, sbuf, count*2);
 	{
