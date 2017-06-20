@@ -63,10 +63,12 @@ float adjust_volume(float factor, s16 *b, int size)
 {
 	int i;
 	long v;
+	long long avg = 0;
 	static int overflows = 0;
-	int min=0, max=0; 
+	int min=99999, max=-99999; 
 	for (i = 0; i < size/2; i++) {
 		v = b[i] * factor;
+		avg += v;
 		if (v > max) max=v;
 		if (v < min) min=v;
 		if (v > SHRT_MAX) {
@@ -79,7 +81,8 @@ float adjust_volume(float factor, s16 *b, int size)
 		}
 		b[i] = v;
 	}
-	printf("%.4f gain, %d overflows, %6d..%d\n", factor, overflows, min, max);
+	avg = avg / ( size/2 );
+	printf("%.4f gain, %d overflows, %6d..%d..%d\n", factor, overflows, min, (int) avg, max);
 	if (-min > max)
 		max = -min;
 	if (max > (SHRT_MAX * 0.7))
