@@ -201,7 +201,7 @@ static void report_sound(struct test_ctx *ctx)
 			exit(1);
 		}
 
-	fprintf(stderr, "playback %10.0f usec, record %10.0f usec   \n", (float)latency_p, (float)latency_r);
+	fprintf(stderr, "playback %7.0f msec, record %7.0f msec   \n", (float)latency_p/1000, (float)latency_r/1000);
 #endif
 }
 
@@ -388,6 +388,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 	int active_dl = (state == CMTSPEECH_STATE_ACTIVE_DLUL) || (state == CMTSPEECH_STATE_ACTIVE_DL);
 	int loops;
 
+	/* This is really if(), there's break at the end. */
 	while (ctx->source && active_ul) {
 		pa_usec_t latency_r;
 #ifdef PULSE
@@ -395,16 +396,17 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 			fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
 			exit(1);
 		}
-
+#if 0
 		if (latency_r < 100000) {
 		  fprintf(stderr, "...skip latency (%d)\n", latency_r);
 			break;
 		}
+#endif
 
-		if (latency_r > 300000) {
+		if (latency_r > 400000) {
 			int scratch_int;
 		  fprintf(stderr, "...flush latency (%d)\n", latency_r);
-		  error = audio_read(ctx->source, scratch, 128);
+		  error = audio_read(ctx->source, scratch, 160);
 		  if (error < 0) {
 		    fprintf(stderr, __FILE__": error during flushing: %s\n", audio_strerror());
 		    exit(1);
@@ -417,8 +419,10 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 		}
 #endif
 		res = cmtspeech_ul_buffer_acquire(ctx->cmtspeech, &ulbuf);
-		if (res != 0)
+		if (res != 0) {
+			fprintf(stderr, "don't have free upload buffer\n");
 			break;
+		}
 
 		memset(ulbuf->payload, 0, ulbuf->pcount);
 		//printf("readbuf: %d bytes\n", ulbuf->pcount);
@@ -494,11 +498,16 @@ static int test_handle_cmtspeech_control(struct test_ctx *ctx)
 	    break;
     case CMTSPEECH_TR_3_DL_START:
       /* Start audio playback here ? */
+	    ctx->dl_active = 1;
 	    start_sink(ctx);
+	    if (ctx->ul_active)
+		    start_source(ctx);
 	    break;
     case CMTSPEECH_TR_4_DLUL_STOP:
 	    stop_source(ctx);
 	    stop_sink(ctx);
+	    ctx->dl_active = 0;
+	    ctx->ul_active = 0;
 	    break;
       /* Stop audio ? */
     case CMTSPEECH_TR_5_PARAM_UPDATE:
@@ -512,11 +521,14 @@ static int test_handle_cmtspeech_control(struct test_ctx *ctx)
     case CMTSPEECH_TR_10_RESET:
 	    break;
     case CMTSPEECH_TR_11_UL_STOP:
+	    ctx->ul_active = 0;
 	    stop_source(ctx);
 	    break;
     case CMTSPEECH_TR_12_UL_START:
 	    /* FIXME: we start the source too early */ 
-	    start_source(ctx);
+	    ctx->ul_active = 1;
+	    if (ctx->dl_active)
+		    start_source(ctx);
 	    break;
       /* Start audio record? */
       /* no-op */
@@ -603,7 +615,7 @@ static int test_mainloop(struct test_ctx *ctx)
 int main(int argc, char *argv[])
 {
   DBusBusType dbus_type = DBUS_BUS_SYSTEM;
-  struct test_ctx ctx0;
+  static struct test_ctx ctx0;
   struct test_ctx *ctx = &ctx0;
   int res = 0;
 
@@ -619,6 +631,8 @@ int main(int argc, char *argv[])
   ctx->data_through = 0;
   ctx->source_cc = -1;
   ctx->sink_cc = -1;
+  ctx->ul_active = 0;
+  ctx->dl_active = 0;
 
   audio_init(ctx);
 

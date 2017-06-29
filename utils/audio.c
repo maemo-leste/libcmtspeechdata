@@ -32,6 +32,8 @@ struct test_ctx {
 	bool call_server_status;
 	int verbose;
 	cmtspeech_t *cmtspeech;
+	int ul_active;
+	int dl_active;
 #endif
 	audio_t source;
 	audio_t sink;
