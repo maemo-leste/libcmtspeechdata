@@ -3,5 +3,5 @@
 #sleep 50
 echo "starting"
 cd /my/libcmtspeechdata
-DISPLAY=:0.0 sudo nice -n -20 ./cmt_pulse -a -v -v | tee /my/cmtspeech.log
+DISPLAY=:0.0 sudo nice -n -10 ./cmt_pulse -a -v -v > /my/cmtspeech.log 2>&1
 sleep 1h
