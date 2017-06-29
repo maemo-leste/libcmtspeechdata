@@ -404,7 +404,7 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 		if (latency_r > 300000) {
 			int scratch_int;
 		  fprintf(stderr, "...flush latency (%d)\n", latency_r);
-		  error = audio_read(ctx->source, scratch, 1024);
+		  error = audio_read(ctx->source, scratch, 128);
 		  if (error < 0) {
 		    fprintf(stderr, __FILE__": error during flushing: %s\n", audio_strerror());
 		    exit(1);
@@ -515,6 +515,7 @@ static int test_handle_cmtspeech_control(struct test_ctx *ctx)
 	    stop_source(ctx);
 	    break;
     case CMTSPEECH_TR_12_UL_START:
+	    /* FIXME: we start the source too early */ 
 	    start_source(ctx);
 	    break;
       /* Start audio record? */
@@ -623,8 +624,8 @@ int main(int argc, char *argv[])
 
 #define RECORD
 #ifdef RECORD
-  ctx->source_cc = open("/data/tmp/source.raw", O_CREAT | O_WRONLY, 0600);
-  ctx->sink_cc = open("/data/tmp/sink.raw", O_CREAT | O_WRONLY, 0600);
+  ctx->source_cc = open("/data/tmp/source.raw", O_CREAT | O_WRONLY | O_TRUNC, 0600);
+  ctx->sink_cc = open("/data/tmp/sink.raw", O_CREAT | O_WRONLY | O_TRUNC, 0600);
 #endif
 
   priv_parse_options(ctx, argc, argv);
