@@ -1272,6 +1272,9 @@ static int handle_inbound_control_message(cmtspeech_nokiamodem_t *priv, const cm
 #ifdef CS_TX_DATA_SENT
       case CS_COMMAND(CS_TX_DATA_SENT):
 	TRACE_DEBUG(DEBUG_PREFIX "internal event UL_DATA_SENT.");
+	fprintf(stderr, "internal: CS_TX_DATA_SENT\n");
+	*flags |= CMTSPEECH_EVENT_TX_DATA_SENT;
+	res = 1;
 	break;
 #endif
 

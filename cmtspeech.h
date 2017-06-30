@@ -88,6 +88,7 @@ enum cmtspeech_state_tr {
 #define CMTSPEECH_EVENT_CONTROL          (1 << 0) /**< control message available */
 #define CMTSPEECH_EVENT_DL_DATA          (1 << 1) /**< DL frame available */
 #define CMTSPEECH_EVENT_XRUN             (1 << 2) /**< DL overrun occured */
+#define CMTSPEECH_EVENT_TX_SENT	         (1 << 3)
 
 /* enum for 'frame_flags' field of cmtspeech_buffer_t */
 #define CMTSPEECH_DATA_TYPE_ZERO         0x00

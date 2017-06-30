@@ -378,15 +378,55 @@ static void priv_parse_options(struct test_ctx *ctx, int argc, char *argv[])
   }
 }
 
-static void test_handle_cmtspeech_data(struct test_ctx *ctx)
+static void test_handle_cmtspeech_data_upload(struct test_ctx *ctx)
 {
 	cmtspeech_buffer_t *dlbuf, *ulbuf;
 	char scratch[10240];
 	int res, error, num;
 	int state = cmtspeech_protocol_state(ctx->cmtspeech);
 	int active_ul = (state == CMTSPEECH_STATE_ACTIVE_DLUL);
-	int active_dl = (state == CMTSPEECH_STATE_ACTIVE_DLUL) || (state == CMTSPEECH_STATE_ACTIVE_DL);
-	int loops;
+	int loops = 1;
+
+	if (!!ctx->source != active_ul) {
+		fprintf(stderr, "wrong ctx->source!= active_ul\n");
+		exit(1);
+	}
+
+	while (ctx->source && active_ul && loops) {
+		loops --;
+		res = cmtspeech_ul_buffer_acquire(ctx->cmtspeech, &ulbuf);
+		if (res != 0) {
+			fprintf(stderr, "don't have free upload buffer\n");
+			break;
+		}
+
+		memset(ulbuf->payload, 0, ulbuf->pcount);
+		//printf("readbuf: %d bytes\n", ulbuf->pcount);
+		num = audio_read(ctx->source, ulbuf->payload, ulbuf->pcount);
+		if (num < 0) {
+			fprintf(stderr, "error reading from source (%d), error %s\n", ulbuf->pcount,
+				audio_strerror());
+		} else {
+			if (num != ulbuf->pcount)
+				fprintf(stderr, "could not fill incoming buffer\n");
+			ulbuf->pcount = num;
+		}
+		//printf("readbuf done: %d bytes\n", ulbuf->pcount);
+
+		error = write(ctx->source_cc, ulbuf->payload, num);
+		if (error < 0) {
+			printf("cc write failed: %m\n");
+		}
+
+		ctx->data_through += ulbuf->pcount;
+      
+		res = cmtspeech_ul_buffer_release(ctx->cmtspeech, ulbuf);
+		if (res != 0) {
+			fprintf(stderr, "Could notrelease ulbuf, says (%d)\n", res);
+			break;
+		}
+
+	}
 
 	/* This is really if(), there's break at the end. */
 	while (ctx->source && active_ul) {
@@ -418,37 +458,20 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 		  }
 		}
 #endif
-		res = cmtspeech_ul_buffer_acquire(ctx->cmtspeech, &ulbuf);
-		if (res != 0) {
-			fprintf(stderr, "don't have free upload buffer\n");
-			break;
-		}
-
-		memset(ulbuf->payload, 0, ulbuf->pcount);
-		//printf("readbuf: %d bytes\n", ulbuf->pcount);
-		num = audio_read(ctx->source, ulbuf->payload, ulbuf->pcount);
-		if (num < 0) {
-			fprintf(stderr, "error reading from source (%d), error %s\n", ulbuf->pcount,
-				audio_strerror());
-		} else {
-			ulbuf->pcount = num;
-		}
-		//printf("readbuf done: %d bytes\n", ulbuf->pcount);
-
-		write(ctx->source_cc, ulbuf->payload, num);
-		if (error) {
-			printf("cc write failed\n");
-		}
-
-		ctx->data_through += ulbuf->pcount;
-      
-		res = cmtspeech_ul_buffer_release(ctx->cmtspeech, ulbuf);
-		if (res != 0) {
-			fprintf(stderr, "Could notrelease ulbuf, says (%d)\n", res);
-			break;
-		}
 		break;
 	}
+}
+
+static void test_handle_cmtspeech_data_download(struct test_ctx *ctx)
+{
+	cmtspeech_buffer_t *dlbuf, *ulbuf;
+	char scratch[10240];
+	int res, error, num;
+	int state = cmtspeech_protocol_state(ctx->cmtspeech);
+	int active_ul = (state == CMTSPEECH_STATE_ACTIVE_DLUL);
+	int active_dl = (state == CMTSPEECH_STATE_ACTIVE_DLUL) || (state == CMTSPEECH_STATE_ACTIVE_DL);
+	int loops;
+
 
 	if (!active_dl)
 	  return;
@@ -468,7 +491,9 @@ static void test_handle_cmtspeech_data(struct test_ctx *ctx)
 	int cnt = dlbuf->pcount;
 	printf("Writing : %d bytes\n", dlbuf->pcount);
 	num = audio_write(ctx->sink, dlbuf->payload, dlbuf->pcount);
-	write(ctx->sink_cc, dlbuf->payload, dlbuf->pcount);
+	if (write(ctx->sink_cc, dlbuf->payload, dlbuf->pcount) < 0) {
+		printf("error writing sink cc, %m\n");
+	}
 	if (num < 0) {
 		fprintf(stderr, "Error writing to sink, %d, error %s\n", dlbuf->pcount, audio_strerror());
 	}
@@ -546,6 +571,7 @@ static int test_mainloop(struct test_ctx *ctx)
   const int dbus = 1;
   struct pollfd fds[2];
   int res = 0;
+  int first = 1;
 
   fds[cmt].fd = cmtspeech_descriptor(ctx->cmtspeech);
   fds[cmt].events = POLLIN;
@@ -561,12 +587,17 @@ static int test_mainloop(struct test_ctx *ctx)
       count = 2;
     }
 
-    pollres = poll(fds, count, -1);
+    if (!ctx->source)
+	    pollres = poll(fds, count, -1);
+    else
+	    pollres = 1;
 
     DEBUG(fprintf(stderr, "poll returned %d (count:%d, cmt:%02X, dbus:%02X)\n",
 		 pollres, count, fds[cmt].revents, fds[dbus].revents));
 
-    /* Should we poll for audio, too? */
+    if (ctx->source)
+	    test_handle_cmtspeech_data_upload(ctx);
+    
     if (pollres > 0) {
 
       if (fds[cmt].revents) {
@@ -576,11 +607,18 @@ static int test_mainloop(struct test_ctx *ctx)
 
 	if (res > 0) {
 
-	  if (flags & CMTSPEECH_EVENT_DL_DATA)
-	    test_handle_cmtspeech_data(ctx);
+	  if (first) {
+	    test_handle_cmtspeech_data_upload(ctx);
+	    first = 0;
+	  }
 
-	  if (flags & CMTSPEECH_EVENT_CONTROL)
+	  if (flags & CMTSPEECH_EVENT_DL_DATA)
+	    test_handle_cmtspeech_data_download(ctx);
+
+	  if (flags & CMTSPEECH_EVENT_CONTROL) {
 	    test_handle_cmtspeech_control(ctx);
+	    test_handle_cmtspeech_data_upload(ctx);
+	  }
 
 	}
       }
