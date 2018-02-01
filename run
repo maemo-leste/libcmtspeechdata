@@ -3,5 +3,8 @@
 #sleep 50
 echo "starting"
 cd /my/libcmtspeechdata
+# sudo chrt -r -p 1 `pidof cmt_pulse`
+# sudo chrt -r -p 2  `pidof pulseaudio`
+
 DISPLAY=:0.0 sudo nice -n -10 ./cmt_pulse -a -v -v > /my/cmtspeech.log 2>&1
 sleep 1h
