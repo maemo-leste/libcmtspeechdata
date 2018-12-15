@@ -1,3 +1,6 @@
 debian/tmp/debian/tmp/usr/bin/cmt_pulse
 debian/tmp/debian/tmp/usr/bin/cmt_alsa
 debian/tmp/debian/tmp/usr/bin/cmt_dsp
+debian/tmp/debian/tmp/usr/bin/pa_test
+debian/tmp/debian/tmp/usr/bin/alsa_test
+debian/tmp/debian/tmp/usr/bin/loop_alsa

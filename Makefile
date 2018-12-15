@@ -1,4 +1,4 @@
-TARGETS = cmt_dsp cmt_pulse cmt_alsa
+TARGETS = cmt_dsp cmt_pulse cmt_alsa pa_test alsa_test loop_alsa
 all:	$(TARGETS)
 
 clean:
@@ -61,4 +61,6 @@ install: cmt_alsa cmt_pulse cmt_dsp
 	install cmt_alsa $(DESTDIR)/debian/tmp/usr/bin/
 	install cmt_pulse $(DESTDIR)/debian/tmp/usr/bin/
 	install cmt_dsp $(DESTDIR)/debian/tmp/usr/bin/
-
+	install pa_test $(DESTDIR)/debian/tmp/usr/bin/
+	install alsa_test $(DESTDIR)/debian/tmp/usr/bin/
+	install loop_alsa $(DESTDIR)/debian/tmp/usr/bin/
