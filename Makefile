@@ -2,7 +2,7 @@ TARGETS = cmt_dsp cmt_pulse cmt_alsa
 all:	$(TARGETS)
 
 clean:
-	rm $(TARGETS)
+	rm -f $(TARGETS)
 
 libcmtspeech.a: cmtspeech_config.h
 	for a in cmtspeech_backend_common cmtspeech_msgs cmtspeech_nokiamodem sal_debug; do \
@@ -11,7 +11,7 @@ libcmtspeech.a: cmtspeech_config.h
 	done
 	ar rcs libcmtspeech.a cmtspeech_backend_common.o cmtspeech_msgs.o cmtspeech_nokiamodem.o sal_debug.o
 
-CFLAGS_CMT = -g -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabi/dbus-1.0/include/ utils/cmtspeech_ofono_test.c -lpthread -lrt libcmtspeech.a /usr/lib/arm-linux-gnueabi/libdbus-1.a -lm
+CFLAGS_CMT = -g -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabihf/dbus-1.0/include/ utils/cmtspeech_ofono_test.c -lpthread -lrt libcmtspeech.a /usr/lib/arm-linux-gnueabihf/libdbus-1.a -lm
 
 CFLAGS_ATEST = -g atest.c
 
@@ -55,3 +55,10 @@ loop_alsa: loop.c
 
 dsp2: dsp2.c
 	gcc -g -Wall dsp2.c -o dsp2
+
+install: cmt_alsa cmt_pulse cmt_dsp
+	mkdir -p $(DESTDIR)/debian/tmp/usr/bin/
+	install cmt_alsa $(DESTDIR)/debian/tmp/usr/bin/
+	install cmt_pulse $(DESTDIR)/debian/tmp/usr/bin/
+	install cmt_dsp $(DESTDIR)/debian/tmp/usr/bin/
+

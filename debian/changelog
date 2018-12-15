@@ -1,0 +1,5 @@
+libcmtspeechdata (0.1-1) unstable; urgency=low
+
+  * Initial packaging of libcmtspeechdata
+
+ -- Merlijn B. W. Wajer <merlijn@wizzup.org>  Sat, 15 Dec 2018 16:47:39 +0100

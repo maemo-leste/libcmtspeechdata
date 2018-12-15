@@ -1,0 +1,15 @@
+Source: libcmtspeechdata
+Section: misc
+Priority: optional
+Maintainer: Merlijn Wajer <merlijn@wizzup.org>
+Build-Depends: debhelper (>= 9.0.0),
+               libdbus-1-dev,
+               libpulse-dev,
+               libasound2-dev,
+               check,
+Standards-Version: 3.7.2
+
+Package: libcmtspeechdata
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: libcmptspeechdata tools for nokia modems
