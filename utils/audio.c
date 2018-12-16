@@ -85,6 +85,7 @@ float adjust_volume(float factor, s16 *b, int size, int dc_adj)
 		}
 		b[i] = v;
 	}
+	if (size > 4) {
 	avg = avg / ( size/2 );
 	printf("%.4f gain, %d overflows, %6d..%d..%d\n", factor, overflows, min, (int) avg, max);
 	if (-min > max)
@@ -97,6 +98,7 @@ float adjust_volume(float factor, s16 *b, int size, int dc_adj)
 		factor = 1;
 	if (factor > 30)
 		factor = 30;
+	}
 	return factor;
 }
 
