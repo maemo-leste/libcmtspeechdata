@@ -1,3 +1,9 @@
+libcmtspeechdata (0.1.2-1) unstable; urgency=medium
+
+  * Build system fixes
+
+ -- Merlijn Wajer <merlijn@wizzup.org>  Sun, 11 Dec 2022 14:21:28 +0100
+
 libcmtspeechdata (0.1.1-1) unstable; urgency=medium
 
   * Merge latest upstream.
