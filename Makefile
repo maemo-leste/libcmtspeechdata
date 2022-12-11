@@ -27,7 +27,7 @@ cmt_alsa: $(CMT_SRC) utils/alsa.c
 	gcc $(CFLAGS_CMT) -DALSA -lasound -o cmt_alsa
 
 cmt_pulse: $(CMT_SRC) utils/pulse.c
-	gcc $(CFLAGS_CMT) $$(pkg-config --cflags --libs libpulse-simple) -DPULSE -o cmt_pulse
+	gcc $(CFLAGS_CMT) -DPULSE -o cmt_pulse $$(pkg-config --cflags --libs libpulse-simple)
 
 cmt_dsp: $(CMT_SRC) utils/dsp.c
 	gcc $(CFLAGS_CMT) -DDSP -o cmt_dsp
@@ -36,7 +36,7 @@ atest_alsa: $(ATEST_SRC) utils/alsa.c
 	gcc $(CFLAGS_ATEST) -DALSA -lasound -o atest_alsa
 
 atest_pulse: $(ATEST_SRC) utils/pulse.c
-	gcc $(CFLAGS_ATEST)  -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabihf/dbus-1.0/include/  $$(pkg-config --cflags --libs libpulse-simple) -DPULSE -o atest_pulse
+	gcc $(CFLAGS_ATEST)  -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabihf/dbus-1.0/include/  -DPULSE -o atest_pulse $$(pkg-config --cflags --libs libpulse-simple)
 
 atest_dsp: $(ATEST_SRC) utils/dsp.c
 	gcc $(CFLAGS_ATEST) -DDSP -o atest_dsp
@@ -45,7 +45,7 @@ rawplay_alsa: $(RAWPLAY_SRC) utils/alsa.c
 	gcc $(CFLAGS_RAWPLAY) -DALSA -lasound -o rawplay_alsa
 
 pa_test: pa_test.c
-	gcc $$(pkg-config --cflags --libs libpulse-simple) pa_test.c -o pa_test
+	gcc pa_test.c -o pa_test $$(pkg-config --cflags --libs libpulse-simple)
 
 alsa_test: alsa_test.c
 	gcc -g -Wall alsa_test.c -o alsa_test -lasound -lm
