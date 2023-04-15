@@ -57,20 +57,29 @@ static const pa_sample_spec ss = {
 	.rate = 4000,
 	.channels = 2
 };
-static const pa_buffer_attr pa_attr = {
-	.fragsize = (uint32_t) 1024,
+static pa_buffer_attr pa_attr_sink = {
+	.fragsize = (uint32_t) -1,
 	.maxlength = (uint32_t) -1,
-	.minreq = (uint32_t) 1024,
+	.minreq = (uint32_t) -1,
 	.prebuf = (uint32_t) -1,
 	.tlength = (uint32_t) 1024,
-	/* fragsize / tlength can be 4096> pulseaudio CPU drops from 33% CPU to 10%, but latency can be heard */
+};
+
+static pa_buffer_attr pa_attr_source = {
+	.fragsize = (uint32_t) 1024,
+	.maxlength = (uint32_t) -1,
+	.minreq = (uint32_t) -1,
+	.prebuf = (uint32_t) -1,
+	.tlength = (uint32_t) -1,
 };
 
 static void start_sink(struct test_ctx *ctx)
 {
 	int error;
 	/* The sample type to use */
-	if (!(ctx->sink = pa_simple_new(NULL, "libcmtspeech_ofono", PA_STREAM_PLAYBACK, NULL, "playback", &ss, NULL, &pa_attr, &error))) {
+	/* Set to 16 ms */
+	pa_attr_sink.tlength = pa_usec_to_bytes(16 * 1000, &ss);
+	if (!(ctx->sink = pa_simple_new(NULL, "libcmtspeech_ofono", PA_STREAM_PLAYBACK, NULL, "playback", &ss, NULL, &pa_attr_sink, &error))) {
 		fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
 		exit(1);
 	}
@@ -79,8 +88,10 @@ static void start_sink(struct test_ctx *ctx)
 static void start_source(struct test_ctx *ctx)
 {
 	int error;
+	/* Set to 16 ms */
+	pa_attr_source.fragsize = pa_usec_to_bytes(16 * 1000, &ss);
 	/* Create the recording stream */
-	if (!(ctx->source = pa_simple_new(NULL, "libcmtspeech_ofono", PA_STREAM_RECORD, NULL, "record", &ss, NULL, &pa_attr, &error))) {
+	if (!(ctx->source = pa_simple_new(NULL, "libcmtspeech_ofono", PA_STREAM_RECORD, NULL, "record", &ss, NULL, &pa_attr_source, &error))) {
 		fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
 		exit(1);
 	}
