@@ -77,8 +77,8 @@ static void start_sink(struct test_ctx *ctx)
 {
 	int error;
 	/* The sample type to use */
-	/* Set to 16 ms */
-	pa_attr_sink.tlength = pa_usec_to_bytes(16 * 1000, &ss);
+	/* Set to 100 ms */
+	pa_attr_sink.tlength = pa_usec_to_bytes(100 * 1000, &ss);
 	if (!(ctx->sink = pa_simple_new(NULL, "libcmtspeech_ofono", PA_STREAM_PLAYBACK, NULL, "playback", &ss, NULL, &pa_attr_sink, &error))) {
 		fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
 		exit(1);
@@ -88,8 +88,8 @@ static void start_sink(struct test_ctx *ctx)
 static void start_source(struct test_ctx *ctx)
 {
 	int error;
-	/* Set to 16 ms */
-	pa_attr_source.fragsize = pa_usec_to_bytes(16 * 1000, &ss);
+	/* Set to 100 ms */
+	pa_attr_source.fragsize = pa_usec_to_bytes(100 * 1000, &ss);
 	/* Create the recording stream */
 	if (!(ctx->source = pa_simple_new(NULL, "libcmtspeech_ofono", PA_STREAM_RECORD, NULL, "record", &ss, NULL, &pa_attr_source, &error))) {
 		fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
