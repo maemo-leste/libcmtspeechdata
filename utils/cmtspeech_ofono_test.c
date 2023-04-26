@@ -677,7 +677,7 @@ int main(int argc, char *argv[])
 
 #define RECORD
 #ifdef RECORD
-  ctx->source_cc = open("/dev/null", O_CREAT | O_WRONLY | O_TRUNC, 0600)
+  ctx->source_cc = open("/dev/null", O_CREAT | O_WRONLY | O_TRUNC, 0600);
   ctx->sink_cc = open("/dev/null", O_CREAT | O_WRONLY | O_TRUNC, 0600);
   //ctx->source_cc = open("/data/tmp/source.raw", O_CREAT | O_WRONLY | O_TRUNC, 0600);
   //ctx->sink_cc = open("/data/tmp/sink.raw", O_CREAT | O_WRONLY | O_TRUNC, 0600);
