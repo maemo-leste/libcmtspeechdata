@@ -520,7 +520,6 @@ static int test_handle_cmtspeech_control(struct test_ctx *ctx)
 
     case CMTSPEECH_TR_1_CONNECTED:
         sleep(2);
-        break;
     case CMTSPEECH_TR_2_DISCONNECTED:
 	    break;
     case CMTSPEECH_TR_3_DL_START:
