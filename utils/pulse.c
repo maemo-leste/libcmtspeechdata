@@ -56,13 +56,15 @@ static const pa_sample_spec ss = {
 	.format = PA_SAMPLE_S16LE,
 	.rate = 4000,
 	.channels = 2
+/* alternate-sample-rate must be 4000 in /etc/pulse/daemon.conf to get calls working both ways*/
 };
 static const pa_buffer_attr pa_attr = {
-	.fragsize = (uint32_t) 4096,
+	.fragsize = (uint32_t) 256,
 	.maxlength = (uint32_t) -1,
-	.minreq = (uint32_t) -1,
+	.minreq = (uint32_t) 256,
 	.prebuf = (uint32_t) -1,
-	.tlength = (uint32_t) 4096,
+	.tlength = (uint32_t) 256,
+	/*fragsize / minreq / tlenght must be 256 to get 2G calls working, no real inpact on 3G calls ATM*/
 	/* fragsize / tlength can be 4096> pulseaudio CPU drops from 33% CPU to 10%, but latency can be heard */
 };
 
