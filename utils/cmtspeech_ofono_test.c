@@ -446,7 +446,8 @@ static void test_handle_cmtspeech_data_upload(struct test_ctx *ctx)
 		if (latency_r > 400000) {
 			int scratch_int;
 		  fprintf(stderr, "...flush latency (%d)\n", latency_r);
-		  error = audio_read(ctx->source, scratch, 160);
+		  error = audio_read(ctx->source, scratch, 2048);
+			/* increasing value from 160 to 2048 avoids PA latency issue at the beginning of calls */
 		  if (error < 0) {
 		    fprintf(stderr, __FILE__": error during flushing: %s\n", audio_strerror());
 		    exit(1);
