@@ -57,15 +57,16 @@ static const pa_sample_spec ss = {
 	.rate = 4000,
 	.channels = 2
 /* alternate-sample-rate must be 4000 in /etc/pulse/daemon.conf to get calls working both ways*/
+/* (alternate-sample-rate = 44100 and sample-rate = 48000 work as well now) */
 };
 static const pa_buffer_attr pa_attr = {
 	.fragsize = (uint32_t) 256,
 	.maxlength = (uint32_t) -1,
-	.minreq = (uint32_t) 256,
+	.minreq = (uint32_t) -1,
 	.prebuf = (uint32_t) -1,
-	.tlength = (uint32_t) 256,
-	/*fragsize / minreq / tlenght must be 256 to get 2G calls working, no real inpact on 3G calls ATM*/
-	/* fragsize / tlength can be 4096> pulseaudio CPU drops from 33% CPU to 10%, but latency can be heard */
+	.tlength = (uint32_t) 4096,
+/*fragsize / minreq / tlenght must be 256 to get 2G calls working, no real inpact on 3G calls ATM*/
+/*got better result with fragsize 256 and tlength 4096 using chrt realtime priorities */
 };
 
 static void start_sink(struct test_ctx *ctx)
