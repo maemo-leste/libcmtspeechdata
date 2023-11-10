@@ -1,3 +1,9 @@
+libcmtspeechdata (0.1.2.2-1) unstable; urgency=medium
+
+  * More N900 call improvements by Arno II
+
+ -- Merlijn Wajer <merlijn@wizzup.org>  Fri, 10 Nov 2023 20:38:52 +0100
+
 libcmtspeechdata (0.1.2.1-1) unstable; urgency=medium
 
   * N900 call fixes by Arno II
