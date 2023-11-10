@@ -436,14 +436,14 @@ static void test_handle_cmtspeech_data_upload(struct test_ctx *ctx)
 			fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
 			exit(1);
 		}
-#if 0
+//#if 0
 		if (latency_r < 100000) {
 		  fprintf(stderr, "...skip latency (%d)\n", latency_r);
 			break;
 		}
-#endif
+//#endif
 
-		if (latency_r > 400000) {
+		if (latency_r > 200000) {
 			int scratch_int;
 		  fprintf(stderr, "...flush latency (%d)\n", latency_r);
 		  error = audio_read(ctx->source, scratch, 2048);
