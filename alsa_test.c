@@ -506,7 +506,7 @@ int main(int argc, char *argv[])
 		snd_pcm_drain(phandle);
 		snd_pcm_nonblock(phandle, !block ? 1 : 0);
 		if (ok) {
-#if 1
+#if 0
 			printf("Playback time = %li.%i, Record time = %li.%i, diff = %li\n",
 			       p_tstamp.tv_sec,
 			       (int)p_tstamp.tv_usec,

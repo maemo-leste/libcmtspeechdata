@@ -364,9 +364,9 @@ static void priv_parse_options(struct test_ctx *ctx, int argc, char *argv[])
 			      buf[i] = i*5;
 
 		      res = audio_read(ctx->source, buf, len);
-		      printf("read: %d\n", res);
+		      printf("read: %lu\n", res);
 		      res = audio_write(ctx->sink, buf, len);
-		      printf("write: %d\n", res);		      
+		      printf("write: %lu\n", res);		      
 	      }
 #endif
 
@@ -438,14 +438,14 @@ static void test_handle_cmtspeech_data_upload(struct test_ctx *ctx)
 		}
 //#if 0
 		if (latency_r < 100000) {
-		  fprintf(stderr, "...skip latency (%d)\n", latency_r);
+		  fprintf(stderr, "...skip latency (%lld)\n", latency_r);
 			break;
 		}
 //#endif
 
 		if (latency_r > 200000) {
 			int scratch_int;
-		  fprintf(stderr, "...flush latency (%d)\n", latency_r);
+		  fprintf(stderr, "...flush latency (%lld)\n", latency_r);
 		  error = audio_read(ctx->source, scratch, 2048);
 			/* increasing value from 160 to 2048 avoids PA latency issue at the beginning of calls */
 		  if (error < 0) {

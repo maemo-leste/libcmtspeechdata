@@ -126,7 +126,7 @@ void wd_done(void)
  *  #define SSIZE (16*1024)
  * to SSIZE*4, since the first #define sets it to 4096
  */
-char sbuf[SSIZE*8];
+short int sbuf[SSIZE*8];
 
 #ifdef MAN_STEREO
 ssize_t audio_read(audio_t fd, void *buf, size_t count)

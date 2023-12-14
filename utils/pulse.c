@@ -4,9 +4,9 @@
 
 static int pa_errno;
 
-long audio_read_raw(pa_simple *handle, char *buf, long len)
+long audio_read_raw(pa_simple *handle, char *buf, int len)
 {
-	size_t frames = len;
+	int frames = len;
 	int error;
 
 	error = pa_simple_read(handle, buf, len, &frames);
@@ -17,7 +17,7 @@ long audio_read_raw(pa_simple *handle, char *buf, long len)
 	return frames;
 }
 
-long audio_write_raw(pa_simple *handle, char *buf, long len)
+long audio_write_raw(pa_simple *handle, char *buf, int len)
 {
 	int frames = len;
 	int error;
