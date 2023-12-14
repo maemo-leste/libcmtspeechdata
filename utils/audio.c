@@ -6,23 +6,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "audio.h"
 typedef int16_t s16;
-
-#ifdef ALSA
-#include <alsa/asoundlib.h>
-typedef snd_pcm_t * audio_t;
-#endif
-#ifdef PULSE
-#include <pulse/simple.h>
-#include <pulse/error.h>
-typedef pa_simple * audio_t;
-#endif	
-#ifdef DSP
-typedef int audio_t;
-#endif
-#ifndef PULSE
-typedef long long pa_usec_t;
-#endif
 
 struct test_ctx {
 #ifdef CMT_REAL
@@ -137,15 +122,18 @@ void wd_done(void)
 	wd_write("no\n");
 }
 
-#define SSIZE (16*1024)
-char sbuf[SSIZE*2];
+/* Convert the following duplicate #define from:
+ *  #define SSIZE (16*1024)
+ * to SSIZE*4, since the first #define sets it to 4096
+ */
+char sbuf[SSIZE*8];
 
 #ifdef MAN_STEREO
 ssize_t audio_read(audio_t fd, void *buf, size_t count)
 {
 	static float gain = 3;
 	ssize_t res;
-	if (count > SSIZE) {
+	if (count > SSIZE*4) {
 		printf("Too big request\n");
 		exit(1);
 	}
@@ -159,7 +147,7 @@ ssize_t audio_write(audio_t fd, void *buf, size_t count)
 {
 	static float gain = 3;
 	ssize_t res;
-	if (count > SSIZE) {
+	if (count > SSIZE*4) {
 		printf("Too big request\n");
 		exit(1);
 	}
