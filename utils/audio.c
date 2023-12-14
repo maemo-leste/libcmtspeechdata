@@ -127,7 +127,7 @@ void wd_done(void)
  *   replace with SSIZE*4
  */
 
-char sbuf[SSIZE*8];
+short int sbuf[SSIZE*8];
 
 #ifdef MAN_STEREO
 ssize_t audio_read(audio_t fd, void *buf, size_t count)
