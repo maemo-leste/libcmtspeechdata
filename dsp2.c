@@ -6,11 +6,11 @@ struct test_ctx {
 };
 
 #include "utils/dsp.c"
+#include "utils/audio.h"
 
 /*
  * Mandatory variables.
  */
-#define SSIZE 4096
 int audio_fd;  
 char silence[SSIZE];
 

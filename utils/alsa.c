@@ -10,6 +10,8 @@
 #include <sys/time.h>
 #include <math.h>
 
+#include "audio.h"
+
 #define DRIVER_NAME "alsa"
 
 /*
