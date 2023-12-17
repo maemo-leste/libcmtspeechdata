@@ -10,6 +10,8 @@
 #include <sys/time.h>
 #include <math.h>
 
+#include "audio.h"
+
 #define DRIVER_NAME "alsa"
 
 /*
@@ -386,7 +388,7 @@ static void start_sink(struct test_ctx *ctx)
 
 	snd_pcm_dump(phandle, output);
 	
-	printf("initial write: %d\n", audio_write(ctx->sink, zero_buf, 3*1024));
+	printf("initial write: %zd\n", audio_write(ctx->sink, zero_buf, 3*1024));
 }
 
 static void start_source(struct test_ctx *ctx)

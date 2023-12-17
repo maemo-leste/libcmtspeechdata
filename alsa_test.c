@@ -498,7 +498,7 @@ int main(int argc, char *argv[])
 		printf("Capture:\n");
 		showstat(chandle, frames_in);
 		showinmax(in_max);
-		if (p_tstamp.tv_sec == p_tstamp.tv_sec &&
+		if (p_tstamp.tv_sec == c_tstamp.tv_sec &&
 		    p_tstamp.tv_usec == c_tstamp.tv_usec)
 			printf("Hardware sync\n");
 		snd_pcm_drop(chandle);
@@ -506,7 +506,7 @@ int main(int argc, char *argv[])
 		snd_pcm_drain(phandle);
 		snd_pcm_nonblock(phandle, !block ? 1 : 0);
 		if (ok) {
-#if 1
+#if 0
 			printf("Playback time = %li.%i, Record time = %li.%i, diff = %li\n",
 			       p_tstamp.tv_sec,
 			       (int)p_tstamp.tv_usec,
