@@ -1,3 +1,9 @@
+libcmtspeechdata (0.1.2.3-1) unstable; urgency=medium
+
+  * Compilation fixes and some other fixups by Sicelo
+
+ -- Merlijn Wajer <merlijn@wizzup.org>  Sun, 17 Dec 2023 20:46:30 +0100
+
 libcmtspeechdata (0.1.2.2-1) unstable; urgency=medium
 
   * More N900 call improvements by Arno II
