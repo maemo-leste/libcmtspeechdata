@@ -58,6 +58,9 @@ install:
 
 	dh_install -s
 
+#xsession for cmt_pulse
+	dh_installxsession -u 'pre 24'
+
 # Must not depend on anything. This is to be called by
 # binary-arch/binary-indep
 # in another 'make' thread.
