@@ -1,3 +1,9 @@
+libcmtspeechdata (0.1.2.5-1) unstable; urgency=medium
+
+  * Switch to 8000Mhz calls
+
+ -- Merlijn Wajer <merlijn@wizzup.org>  Sat, 03 Aug 2024 11:43:19 +0200
+
 libcmtspeechdata (0.1.2.4-1) unstable; urgency=medium
 
   * Add xsession script
