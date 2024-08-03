@@ -52,15 +52,17 @@ static void flush_input(struct test_ctx *ctx)
 
 /* FIXME: Hmm. That makes no sense. Is it rate = 8000, channels = 1? */
 /* FIXME: requesting 8000 crashes pulseaudio. */
+/* FIX: 8000Hz crash was due to high shm value in pulseaudio (64MB --> 32MB) */
 static const pa_sample_spec ss = {
 	.format = PA_SAMPLE_S16LE,
-	.rate = 4000,
-	.channels = 2
+	.rate = 8000,
+	.channels = 1
+/* 16000Hz works now but resampling seems wrong. needs investigations */
 /* alternate-sample-rate must be 4000 in /etc/pulse/daemon.conf to get calls working both ways*/
 /* (alternate-sample-rate = 44100 and sample-rate = 48000 work as well now) */
 };
 static const pa_buffer_attr pa_attr = {
-	.fragsize = (uint32_t) 256,
+	.fragsize = (uint32_t) 512,
 	.maxlength = (uint32_t) -1,
 	.minreq = (uint32_t) -1,
 	.prebuf = (uint32_t) -1,
