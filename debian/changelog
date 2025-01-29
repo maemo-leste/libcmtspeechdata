@@ -1,3 +1,9 @@
+libcmtspeechdata (0.1.2.6-1) unstable; urgency=medium
+
+  * Remove old build system files
+
+ -- Merlijn Wajer <merlijn@wizzup.org>  Wed, 29 Jan 2025 14:51:20 +0100
+
 libcmtspeechdata (0.1.2.5-1) unstable; urgency=medium
 
   * Switch to 8000Mhz calls
