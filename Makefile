@@ -11,7 +11,7 @@ libcmtspeech.a: cmtspeech_config.h
 	done
 	ar rcs libcmtspeech.a cmtspeech_backend_common.o cmtspeech_msgs.o cmtspeech_nokiamodem.o sal_debug.o
 
-CFLAGS_CMT = -g -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabihf/dbus-1.0/include/ utils/cmtspeech_ofono_test.c -lpthread -lrt libcmtspeech.a -ldbus-1 -lm
+CFLAGS_CMT = -g -I . utils/cmtspeech_ofono_test.c -lpthread -lrt libcmtspeech.a $$(pkg-config --cflags --libs dbus-1) -lm
 
 CFLAGS_ATEST = -g atest.c
 
@@ -27,7 +27,7 @@ cmt_alsa: $(CMT_SRC) utils/alsa.c
 	gcc $(CFLAGS_CMT) -DALSA -lasound -o cmt_alsa
 
 cmt_pulse: $(CMT_SRC) utils/pulse.c
-	gcc $(CFLAGS_CMT) -DPULSE -o cmt_pulse $$(pkg-config --cflags --libs libpulse-simple)
+	gcc $(CFLAGS_CMT) -DPULSE -o cmt_pulse $$(pkg-config --cflags --libs libpulse-simple dbus-1)
 
 cmt_dsp: $(CMT_SRC) utils/dsp.c
 	gcc $(CFLAGS_CMT) -DDSP -o cmt_dsp
@@ -36,7 +36,7 @@ atest_alsa: $(ATEST_SRC) utils/alsa.c
 	gcc $(CFLAGS_ATEST) -DALSA -lasound -o atest_alsa
 
 atest_pulse: $(ATEST_SRC) utils/pulse.c
-	gcc $(CFLAGS_ATEST)  -I . -I /usr/include/dbus-1.0/ -I /usr/lib/arm-linux-gnueabihf/dbus-1.0/include/  -DPULSE -o atest_pulse $$(pkg-config --cflags --libs libpulse-simple)
+	gcc $(CFLAGS_ATEST)  -I . -DPULSE -o atest_pulse $$(pkg-config --cflags --libs libpulse-simple dbus-1)
 
 atest_dsp: $(ATEST_SRC) utils/dsp.c
 	gcc $(CFLAGS_ATEST) -DDSP -o atest_dsp
@@ -57,10 +57,10 @@ dsp2: dsp2.c
 	gcc -g -Wall dsp2.c -o dsp2
 
 install: cmt_alsa cmt_pulse cmt_dsp
-	mkdir -p $(DESTDIR)/debian/tmp/usr/bin/
-	install cmt_alsa $(DESTDIR)/debian/tmp/usr/bin/
-	install cmt_pulse $(DESTDIR)/debian/tmp/usr/bin/
-	install cmt_dsp $(DESTDIR)/debian/tmp/usr/bin/
-	install pa_test $(DESTDIR)/debian/tmp/usr/bin/
-	install alsa_test $(DESTDIR)/debian/tmp/usr/bin/
-	install loop_alsa $(DESTDIR)/debian/tmp/usr/bin/
+	mkdir -p $(DESTDIR)/usr/bin/
+	install cmt_alsa $(DESTDIR)/usr/bin/
+	install cmt_pulse $(DESTDIR)/usr/bin/
+	install cmt_dsp $(DESTDIR)/usr/bin/
+	install pa_test $(DESTDIR)/usr/bin/
+	install alsa_test $(DESTDIR)/usr/bin/
+	install loop_alsa $(DESTDIR)/usr/bin/
